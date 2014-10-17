@@ -1,0 +1,2 @@
+exclude = "{node_modules,tmp}"
+excludeInFolderSearch = "{$excludeInFolderSearch,$extraExcludes,tmp,dist,lib/vendor,rdr.min.js}"
