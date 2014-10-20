@@ -1,4 +1,6 @@
 RDR = class extends RDR
+	DSListeners: []
+	
 	DSConnect: ->
 		@DS = new Firebase "https://#{@Config.firebase}.firebaseio.com/"
 	
@@ -16,12 +18,21 @@ RDR = class extends RDR
 			
 			deferred = Q.defer()
 			
-			@DS.child(path).once "value", (snapshot) ->
-				val = snapshot.val()
-				val.id = where.id if "id" of where
-				r.vars[v] = val
-				r.Log "Vars", "Setting: #{v}"
+			if $.inArray(path, @DSListeners) != -1
 				deferred.resolve()
+				@Debug "Listeners", "Already Listening: #{path}"
+			else
+				listener = @DS.child(path).on "value", (snapshot) ->
+					id = snapshot.name()
+					val = snapshot.val()
+					path = "#{snapshot.ref()}".replace("https://#{r.Config.firebase}.firebaseio.com/", "")
+					r.vars[v] = val
+					r.Log "Vars", "Setting: #{v}"
+					$("[data-rdr-var='#{path}']").html val
+					deferred.resolve()
+
+				@DSListeners.push path
+				@Debug "Listeners", "Added: #{path}"
 				
 			deferred.promise
 			
