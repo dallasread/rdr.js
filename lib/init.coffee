@@ -1,6 +1,9 @@
 class @RDR
+	glob: {}
+	vars: {}
 	Controllers: {}
+	Models: {}
 	Templates: {}
 	Routes: {}
 	Initializers: []
-		
+	DS: null

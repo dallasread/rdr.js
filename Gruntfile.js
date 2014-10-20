@@ -9,7 +9,11 @@ module.exports = function(grunt) {
 					join: true
 				},
 				files: {
-					"tmp/rdr.js": ["lib/init.coffee", "lib/*.coffee"],
+					"tmp/rdr.js": [
+						"lib/init.coffee",
+						"lib/*.coffee",
+						"lib/boot/*.coffee"
+					],
 				}
 	    }
 	  },
@@ -42,7 +46,7 @@ module.exports = function(grunt) {
 		    tasks: ["uglify"]
 		  },
 		  js: {
-		    files: ["lib/*"],
+		    files: ["lib/**/*"],
 		    tasks: ["js"]
 		  }
 		}
