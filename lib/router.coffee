@@ -12,7 +12,7 @@ RDR = class extends RDR
 		segments = pieces.slice(0)
 		segments.reverse() if reverse
 		segments.splice segments.length - index, segments.length
-		"/#{segments.join("/")}".replace("//", "/")
+		"/#{segments.join("/")}".replace(/\/\//g, "/")
 		
 	fetchPath: (path) ->
 		r = @
@@ -40,7 +40,7 @@ RDR = class extends RDR
 			folders = path.split("/")
 	
 			for route,children of routes
-				route = route.replace("/", "")
+				route = route.replace(/\//g, "")
 	
 				if route == folders[0]
 					selected_path.push route

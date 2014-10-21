@@ -3,7 +3,7 @@ RDR = class extends RDR
 		if typeof @Config != "undefined" && @Config.debug
 			class_length = 13
 			c = new Array(class_length - a.length).join(" ")
-			console[log_level] "#{c}#{a} :: #{b}"
+			console[log_level] "#{c}#{a} # #{b}"
 		
 	Log: (a, b) ->
 		@Logger "log", a, b

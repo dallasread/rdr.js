@@ -11,7 +11,7 @@ RDR = class extends RDR
 		
 		for segment,index in segments
 			path = @pathForSegments segments, false, index
-			loading_path = "#{path}/loading".replace("//", "/")
+			loading_path = "#{path}/loading".replace(/\/\//g, "/")
 			dasherized_path = @dasherized path
 			@Debug "Loading", "Fetching: #{path}"
 			@Debug "Loading", "Load Path: #{loading_path}"
@@ -67,7 +67,8 @@ RDR = class extends RDR
 			@Warn "Views", "Already Present: #{view_path}"
 		else
 			if view_path of @Templates
-				vars = $.extend {}, @vars
+				vars = $.extend {}, @fetchSynchronousVars()
+				vars.vars = @vars
 				vars.outlet = html
 				html = @buildFromTemplate @Templates[view_path], vars, dasherized_path
 				@Log "Views", "Generated: #{view_path}"
@@ -78,4 +79,4 @@ RDR = class extends RDR
 	
 	buildFromTemplate: (template, data = {}, dasherized_path) ->
 		data.outlet = "<div class=\"rdr-template-#{dasherized_path}-outlet\">#{data.outlet}</div>"
-		"<div class=\"rdr-template-#{dasherized_path}\">#{template(data)}</div>"
+		"<div class=\"rdr-template rdr-template-#{dasherized_path}\" data-path=\"/#{dasherized_path.replace(/\-/g, "/")}\">#{template(data)}</div>"
