@@ -45,19 +45,10 @@ RDR = class extends RDR
 				r.save attrs
 			false
 		
+		$(@Config.container).on "click", "[data-rdr-bind-event='click']", ->
+			r.executeEvent $(this)
+			false
+		
 		$(@Config.container).on "submit", "[data-rdr-bind-event='submit']", ->
-			form = $(this)
-			path = ""
-			found = false
-			event = $(this).attr("data-rdr-bind-action")
-			
-			$(this).parents(".rdr-template").each ->
-				path = $(this).attr("data-path")
-				
-				if path of r.Controllers && "actions" of r.Controllers[path] && event of r.Controllers[path]["actions"]
-					found = true
-					r.Controllers[path]["actions"][event] form
-					false
-					
-			r.Log "Events", "No Function Found: #{event}" unless found
+			r.executeEvent $(this)
 			false

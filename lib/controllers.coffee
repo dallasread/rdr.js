@@ -4,6 +4,7 @@ RDR = class extends RDR
 		
 		for c,index in controllers
 			path = @pathForSegments controllers, false, controllers.length - index
+			path = "/application" if path == "/"
 			@Log "Controllers", "Fetching: #{path}"
 			
 			if path of @Controllers && "init" of @Controllers[path]
