@@ -17,12 +17,9 @@ RDR = class extends RDR
 				@prepareVars var_key, value, synchronous
 			else
 				@setLocalVarByPath @vars, var_key, value
-				
-				if synchronous
-					value = "<span data-rdr-bind-html='#{var_key}'>#{value}</span>"
-					@setLocalVarByPath @synchronousVars, var_key, value
-				else
-					@updateView var_key, value
+				@updateView var_key, value
+				value = "<span data-rdr-bind-html='#{var_key}'>#{value}</span>"
+				@setLocalVarByPath @synchronousVars, var_key, value
 		
 		if synchronous then @synchronousVars else @vars
 	
@@ -30,6 +27,10 @@ RDR = class extends RDR
 		@prepareVars path, value, synchronous
 		@Log "Vars", "Set: #{path}"
 		synchronous.promise if synchronous
+	
+	deleteLocalVar: (path) ->
+		delete @getLocalVarByPath path
+		@updateView path
 	
 	getLocalVarByPath: (path_str) ->
 		o = ""

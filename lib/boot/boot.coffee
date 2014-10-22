@@ -17,6 +17,7 @@ RDR = class extends RDR
 		
 		@createApplicationView()
 		@DSConnect()
+		@Events()
 		FastClick.attach document.body
 		
 		if /\#|hash/.test(@Config.history)
@@ -35,27 +36,3 @@ RDR = class extends RDR
 				false
 			
 			@fetchPath @currentPath
-		
-		$(@Config.container).on "saveAttrs", "form", ->
-			$(this).find("[data-rdr-bind-key]").each ->
-				attrs = {}
-				path = $(this).attr("data-rdr-bind-key")
-				attrs[path] = $(this).val()
-				r.save attrs
-			false
-		
-		$(@Config.container).on "blur", "[data-rdr-bind-event='blur']", ->
-			attrs = {}
-			path = $(this).attr("data-rdr-bind-key")
-			value = 
-			attrs[path] = $(this).val()
-			r.save attrs
-			false
-			
-		$(@Config.container).on "click", "[data-rdr-bind-event='click']", ->
-			r.executeEvent $(this)
-			false
-		
-		$(@Config.container).on "submit", "[data-rdr-bind-event='submit']", ->
-			r.executeEvent $(this)
-			false

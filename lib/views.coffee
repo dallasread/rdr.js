@@ -56,15 +56,22 @@ RDR = class extends RDR
 		data.outlet = "<div class=\"rdr-template-#{dasherized_path}-outlet\">#{data.outlet}</div>"
 		"<div class=\"rdr-template rdr-template-#{dasherized_path}\" data-path=\"/#{dasherized_path.replace(/\-/g, "/")}\">#{template(data)}</div>"
 	
-	updateView: (key, value) ->
-		$("[data-rdr-bind-html='#{key}']").html value
-		$("[data-rdr-bind-key='#{key}']").each ->
-			attr = $(this).attr("data-rdr-bind-attr")
+	updateView: (key, value = false) ->
+		key = key.replace(/\//, ".")
 
-			if attr == "value"
-				$(this).val value
-			else
-				$(this).attr attr, value
+		if !value
+			# DELETE ROW/LI
+		else if "ROW EXISTS"
+			$("[data-rdr-bind-html='#{key}']").html value
+			$("[data-rdr-bind-key='#{key}']").each ->
+				attr = $(this).attr("data-rdr-bind-attr")
+
+				if attr == "value"
+					$(this).val value
+				else
+					$(this).attr attr, value
+		else
+			# ADD ROW!!!
 	
 	showLoading: (segments, placer = "", html = "") ->
 		segments = segments.slice(1).reverse()

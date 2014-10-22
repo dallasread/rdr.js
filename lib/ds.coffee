@@ -30,40 +30,61 @@ RDR = class extends RDR
 				
 				@DS.child(path).on "child_added", (snapshot) ->
 					r.updateLocalVar "#{variable}/#{snapshot.name()}", snapshot.val()
-					
-				@DS.child(path).on "child_changed", (snapshot) ->
-					r.updateLocalVar "#{variable}/#{snapshot.name()}", snapshot.val()
 				
 				@DS.child(path).on "child_removed", (snapshot) ->
-					r.updateLocalVar "#{variable}/#{snapshot.name()}", snapshot.val()
+					r.deleteLocalVar "#{variable}/#{snapshot.name()}"
 
 				@DSListeners.push path
 				@Debug "Listeners", "Added: #{path}"
 				
 			deferred.promise
+	
+	deletebyPath: (path) ->
+		r = @
 		
-	save: (attrs) ->
+		@DS.child(path).remove (error) ->
+			r.DSCallback "delete", path, false, error
+	
+	varPathToDSPath: (path) ->
+		variable = path.split("/")[0]
+		base_path = @varChart[variable]
+		if typeof path != "undefined" then "#{base_path}#{path.split(variable)[1]}" else false
+
+	delete: (data) ->
+		path = @varPathToDSPath data._path
+		@deletebyPath path if path
+	
+	create: (key, value) ->
+		path = @varPathToDSPath key
+
+		if path
+			r = @
+			@DS.child(path).push value, (error) ->
+				r.DSCallback "update", path, value, error
+		else
+			@Warn "Vars", "Bad Path: #{key}"
+		
+	update: (key, value) ->
+		path = @varPathToDSPath key
+
+		if path
+			r = @
+			@DS.child(path).set value, (error) ->
+				r.DSCallback "update", path, value, error
+		else
+			@Warn "Vars", "Bad Path: #{key}"
+	
+	capitalize: (str) ->
+		"#{str}".charAt(0).toUpperCase() + "#{str}".slice(1)
+	
+	DSCallback: (action, path, value, error) ->
 		r = @
 
-		for k,v of attrs
-			variable = k.split("/")[0]
-			path = @varChart[variable]
+		if !error
+			@setLocalVarByPath @vars, path, value
+			@Log "DS", "#{@capitalize action}d: #{path}"
+		else
+			@Warn "DS", "#{@capitalize} Failed: #{value}"
 
-			if typeof path != "undefined"
-				path = "#{path}#{k.split(variable)[1]}"
-				r.DS.child(path).set v, (error) ->
-					if !error
-						r.vars[k.replace(/\//, ".")] = v
-						r.synchronousVars[k.replace(/\//, ".")] = v
-						r.Log "Vars", "Saved: #{path}"
-					else
-						r.Warn "Vars", "Permission Denied: #{v}"
-
-						r.DS.child(path).once "value", (snapshot) ->
-							value = snapshot.val()
-							$("[data-rdr-bind-html='#{k}']").html value
-							$("[data-rdr-bind-key='#{k}']").each ->
-								attr = $(this).attr("data-rdr-bind-attr")
-								if attr == "value" then $(this).val value else $(this).attr attr, value
-			else
-				r.Warn "Vars", "Unable to Save: #{k}"
+			@DS.child(path).once "value", (snapshot) ->
+				r.updateView key, value
