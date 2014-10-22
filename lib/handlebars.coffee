@@ -12,7 +12,15 @@ RDR = class extends RDR
 			path = path.replace(/\/(_path|delete)/, "")
 
 		[in_loop, path]
-		
+	
+	singularize: (str) ->
+		if "#{str}".slice(-3) == "ies"
+			"#{"#{str}".slice(-3)}y"
+		else if "#{str}".slice(-1) == "s"
+			"#{str}".slice(-1)
+		else
+			str
+
 	handlebarsHelpers: ->
 		r = @
 		
@@ -48,3 +56,24 @@ RDR = class extends RDR
 					attrs += "data-rdr-bind-action=\"#{key}\""
 		
 			new Handlebars.SafeString(attrs)
+		
+		Handlebars.registerHelper "render", (variable, options) ->
+			output = ""
+			template = false
+			collection = r.vars[variable]
+			
+			if typeof template != "string"
+				first = collection[Object.keys(collection)[0]]
+				path = r.singularize first._parent_key if typeof first != "undefined"
+				path = r.singularize variable
+				template = "/partials/#{path}"
+			
+			if template of r.Templates
+				for k,v of collection
+					# subTemplateContext = $.extend {}, this, v
+					# console.log r.Templates[template] v
+					output += "<tr><td>awesome</td></tr>"
+			else
+				r.Warn "Handlebars", "Partial Not Found: #{template}"
+
+			new Handlebars.SafeString(output)

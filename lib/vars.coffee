@@ -14,6 +14,8 @@ RDR = class extends RDR
 
 			if typeof value == "object"
 				value._path = var_key
+				# value._key = key
+				# value._parent_key = parent_key
 				@prepareVars var_key, value, synchronous
 			else
 				@setLocalVarByPath @vars, var_key, value
