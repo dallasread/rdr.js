@@ -57,7 +57,7 @@ RDR = class extends RDR
 		"<div class=\"rdr-template rdr-template-#{dasherized_path}\" data-path=\"/#{dasherized_path.replace(/\-/g, "/")}\">#{template(data)}</div>"
 	
 	updateView: (key, value = false) ->
-		key = key.replace(/\//, ".")
+		key = "#{key}".replace(/\//, ".")
 
 		if !value
 			# DELETE ROW/LI

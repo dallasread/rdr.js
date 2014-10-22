@@ -21,22 +21,40 @@ RDR = class extends RDR
 				value = "<span data-rdr-bind-html='#{var_key}'>#{value}</span>"
 				@setLocalVarByPath @synchronousVars, var_key, value
 		
-		if synchronous then @synchronousVars else @vars
+		if synchronous
+			synchronous.resolve()
+			@synchronousVars
+		else
+			@vars
 	
 	updateLocalVar: (path, value, synchronous = false) ->
 		@prepareVars path, value, synchronous
 		@Log "Vars", "Set: #{path}"
 		synchronous.promise if synchronous
 	
-	deleteLocalVar: (path) ->
-		delete @getLocalVarByPath path
-		@updateView path
+	deleteLocalVarByPath: (path) ->
+		path = path.replace(/\//g, ".")
+		path = @getLocalVarByPath path
+		@deleteLocalVar path
 	
-	getLocalVarByPath: (path_str) ->
+	deleteLocalVar: (path_str) ->
+		path_str = path_str.replace(/\//g, ".")
+		d = "delete this.vars"
+		for p in path_str.split(".")
+			d += "[\"#{p}\"]"
+		eval d
+		eval d.replace("this.vars", "this.synchronousVars")
+		@updateView path_str
+	
+	getLocalVarByPath: (path_str, clone = true) ->
 		o = ""
 		path_str = path_str.replace(/\//g, ".")
 		path = path_str.split(".")
-		vars = $.extend {}, @vars
+		
+		if clone
+			vars = $.extend {}, @vars
+		else
+			vars = @vars
 
 		for p in path
 			if p of vars

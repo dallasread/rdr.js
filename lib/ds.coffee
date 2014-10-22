@@ -28,22 +28,23 @@ RDR = class extends RDR
 				@DS.child(path).once "value", (snapshot) ->
 					r.updateLocalVar variable, snapshot.val(), deferred
 				
-				@DS.child(path).on "child_added", (snapshot) ->
+				@DS.child(path).on "child_changed", (snapshot) ->
 					r.updateLocalVar "#{variable}/#{snapshot.name()}", snapshot.val()
 				
 				@DS.child(path).on "child_removed", (snapshot) ->
-					r.deleteLocalVar "#{variable}/#{snapshot.name()}"
+					path = "#{variable}/#{snapshot.name()}"
+					r.deleteLocalVar path
 
 				@DSListeners.push path
 				@Debug "Listeners", "Added: #{path}"
 				
 			deferred.promise
 	
-	deletebyPath: (path) ->
+	deletebyPath: (ds_path) ->
 		r = @
 		
-		@DS.child(path).remove (error) ->
-			r.DSCallback "delete", path, false, error
+		@DS.child(ds_path).remove (error) ->
+			r.DSCallback "delete", ds_path, false, error
 	
 	varPathToDSPath: (path) ->
 		variable = path.split("/")[0]
@@ -51,16 +52,16 @@ RDR = class extends RDR
 		if typeof path != "undefined" then "#{base_path}#{path.split(variable)[1]}" else false
 
 	delete: (data) ->
-		path = @varPathToDSPath data._path
-		@deletebyPath path if path
+		ds_path = @varPathToDSPath data._path
+		@deletebyPath ds_path if ds_path
 	
 	create: (key, value) ->
 		path = @varPathToDSPath key
 
 		if path
 			r = @
-			@DS.child(path).push value, (error) ->
-				r.DSCallback "update", path, value, error
+			@lastCreate = @DS.child(path).push value, (error) ->
+				r.DSCallback "create", key, value, error
 		else
 			@Warn "Vars", "Bad Path: #{key}"
 		
@@ -70,7 +71,7 @@ RDR = class extends RDR
 		if path
 			r = @
 			@DS.child(path).set value, (error) ->
-				r.DSCallback "update", path, value, error
+				r.DSCallback "update", key, value, error
 		else
 			@Warn "Vars", "Bad Path: #{key}"
 	
@@ -81,10 +82,9 @@ RDR = class extends RDR
 		r = @
 
 		if !error
-			@setLocalVarByPath @vars, path, value
 			@Log "DS", "#{@capitalize action}d: #{path}"
 		else
 			@Warn "DS", "#{@capitalize} Failed: #{value}"
 
 			@DS.child(path).once "value", (snapshot) ->
-				r.updateView key, value
+				r.updateView path, value
