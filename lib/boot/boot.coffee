@@ -40,9 +40,16 @@ RDR = class extends RDR
 			$(this).find("[data-rdr-bind-key]").each ->
 				attrs = {}
 				path = $(this).attr("data-rdr-bind-key")
-				value = $(this).val()
-				attrs[path] = value
+				attrs[path] = $(this).val()
 				r.save attrs
+			false
+		
+		$(@Config.container).on "blur", "[data-rdr-bind-event='blur']", ->
+			attrs = {}
+			path = $(this).attr("data-rdr-bind-key")
+			value = 
+			attrs[path] = $(this).val()
+			r.save attrs
 			false
 			
 		$(@Config.container).on "click", "[data-rdr-bind-event='click']", ->

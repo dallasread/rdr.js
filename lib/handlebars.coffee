@@ -14,8 +14,12 @@ RDR = class extends RDR
 				in_loop = true
 				path = $(options.hash.path).attr("data-rdr-bind-html").replace("/_path", "")
 			
+			options.hash.event = "blur" unless "event" of options.hash
+			
 			for attr,key of options.hash
-				if attr != "path"
+				if attr == "event"
+					attrs += "data-rdr-bind-#{attr}=\"#{key}\" "
+				else if attr != "path"
 					key = "#{path}/#{key}" if in_loop
 
 					attrs += "data-rdr-bind-attr=\"#{attr}\" "

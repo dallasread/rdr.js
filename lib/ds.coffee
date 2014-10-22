@@ -42,28 +42,28 @@ RDR = class extends RDR
 				
 			deferred.promise
 		
-		save: (attrs) ->
-				r = @
-		
-				for k,v of attrs
-					variable = k.split("/")[0]
-					path = @varChart[variable]
+	save: (attrs) ->
+		r = @
 
-					if typeof path != "undefined"
-						path = "#{path}#{k.split(variable)[1]}"
-						r.DS.child(path).set v, (error) ->
-							if !error
-								r.vars[k.replace(/\//, ".")] = v
-								r.synchronousVars[k.replace(/\//, ".")] = v
-								r.Log "Vars", "Saved: #{path}"
-							else
-								r.Warn "Vars", "Permission Denied: #{v}"
-		
-								r.DS.child(path).once "value", (snapshot) ->
-									value = snapshot.val()
-									$("[data-rdr-bind-html='#{k}']").html value
-									$("[data-rdr-bind-key='#{k}']").each ->
-										attr = $(this).attr("data-rdr-bind-attr")
-										if attr == "value" then $(this).val value else $(this).attr attr, value
+		for k,v of attrs
+			variable = k.split("/")[0]
+			path = @varChart[variable]
+
+			if typeof path != "undefined"
+				path = "#{path}#{k.split(variable)[1]}"
+				r.DS.child(path).set v, (error) ->
+					if !error
+						r.vars[k.replace(/\//, ".")] = v
+						r.synchronousVars[k.replace(/\//, ".")] = v
+						r.Log "Vars", "Saved: #{path}"
 					else
-						r.Warn "Vars", "Unable to Save: #{k}"
+						r.Warn "Vars", "Permission Denied: #{v}"
+
+						r.DS.child(path).once "value", (snapshot) ->
+							value = snapshot.val()
+							$("[data-rdr-bind-html='#{k}']").html value
+							$("[data-rdr-bind-key='#{k}']").each ->
+								attr = $(this).attr("data-rdr-bind-attr")
+								if attr == "value" then $(this).val value else $(this).attr attr, value
+			else
+				r.Warn "Vars", "Unable to Save: #{k}"
