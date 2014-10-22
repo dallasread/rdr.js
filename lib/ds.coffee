@@ -45,11 +45,11 @@ RDR = class extends RDR
 				if typeof v == "object"
 					@denormalizeVars synchronous, v, var_path, false
 				else
-					@setByPath @vars, var_path, v
+					@setLocalVarByPath @vars, var_path, v
 					
 					if synchronous
 						v = "<span data-rdr-bind-html='#{var_path}'>#{v}</span>"
-						@setByPath @synchronousVars, var_path, v
+						@setLocalVarByPath @synchronousVars, var_path, v
 					else
 						$("[data-rdr-bind-html='#{var_path}']").html v
 						$("[data-rdr-bind-key='#{var_path}']").each ->
@@ -58,7 +58,7 @@ RDR = class extends RDR
 		
 		if initial then global_vars else vars
 	
-	updateVar: (variable, snapshot, synchronous = false) ->
+	updateLocalVar: (variable, snapshot, synchronous = false) ->
 		key = snapshot.name()
 		value = snapshot.val()
 		path = if synchronous then variable else "#{variable}/#{key}"
@@ -101,16 +101,16 @@ RDR = class extends RDR
 				@Debug "Listeners", "Read From Cache: #{path}"
 			else
 				@DS.child(path).once "value", (snapshot) ->
-					r.updateVar variable, snapshot, deferred
+					r.updateLocalVar variable, snapshot, deferred
 				
 				@DS.child(path).on "child_added", (snapshot) ->
-					r.updateVar variable, snapshot
+					r.updateLocalVar variable, snapshot
 					
 				@DS.child(path).on "child_changed", (snapshot) ->
-					r.updateVar variable, snapshot
+					r.updateLocalVar variable, snapshot
 				
 				@DS.child(path).on "child_removed", (snapshot) ->
-					r.updateVar variable, snapshot
+					r.updateLocalVar variable, snapshot
 
 				@DSListeners.push path
 				@Debug "Listeners", "Added: #{path}"
@@ -124,7 +124,7 @@ RDR = class extends RDR
 			obj = obj[arr.shift()]
 		obj
 			
-	setByPath: (obj, path, value) ->
+	setLocalVarByPath: (obj, path, value) ->
 		path = path.replace(/\//g, ".")
 		pList = path.split(".")
 		len = pList.length
