@@ -5,31 +5,6 @@ RDR = class extends RDR
 		path = path.slice(1) if path[0] == "/"
 		path = path.replace(/\//g, "-")
 		path
-
-	showLoading: (segments, placer = "", html = "") ->
-		segments = segments.slice(1).reverse()
-		
-		for segment,index in segments
-			path = @pathForSegments segments, false, index
-			loading_path = "#{path}/loading".replace(/\/\//g, "/")
-			dasherized_path = @dasherized path
-			@Debug "Loading", "Fetching: #{path}"
-			@Debug "Loading", "Load Path: #{loading_path}"
-			
-			if loading_path of @Templates && $(".rdr-template-#{dasherized_path}-outlet").length
-				@Log "Loading", "Found: #{loading_path}"
-				placer = $(".rdr-template-#{dasherized_path}-outlet")
-				[placer, html] = @generateView loading_path, placer
-				break
-		
-		unless placer.length
-			application_loading_path = "/loading"
-			if application_loading_path of @Templates
-				@Debug "Loading", "Use Application: #{application_loading_path}"
-				placer = $(@Config.container).find(".rdr-template-application-outlet") unless placer.length
-				[placer, html] = @generateView application_loading_path, placer, @Templates[application_loading_path]
-		
-		placer.append html if placer.length
 	
 	markActiveRoutes: (segments) ->
 		segments = segments.slice(0).reverse()
@@ -67,7 +42,7 @@ RDR = class extends RDR
 			@Warn "Views", "Already Present: #{view_path}"
 		else
 			if view_path of @Templates
-				vars = $.extend {}, @fetchSynchronousVars()
+				vars = $.extend {}, @synchronousVars
 				vars.vars = @vars
 				vars.outlet = html
 				html = @buildFromTemplate @Templates[view_path], vars, dasherized_path
@@ -80,3 +55,38 @@ RDR = class extends RDR
 	buildFromTemplate: (template, data = {}, dasherized_path) ->
 		data.outlet = "<div class=\"rdr-template-#{dasherized_path}-outlet\">#{data.outlet}</div>"
 		"<div class=\"rdr-template rdr-template-#{dasherized_path}\" data-path=\"/#{dasherized_path.replace(/\-/g, "/")}\">#{template(data)}</div>"
+	
+	updateView: (key, value) ->
+		$("[data-rdr-bind-html='#{key}']").html value
+		$("[data-rdr-bind-key='#{key}']").each ->
+			attr = $(this).attr("data-rdr-bind-attr")
+
+			if attr == "value"
+				$(this).val value
+			else
+				$(this).attr attr, value
+	
+	showLoading: (segments, placer = "", html = "") ->
+		segments = segments.slice(1).reverse()
+		
+		for segment,index in segments
+			path = @pathForSegments segments, false, index
+			loading_path = "#{path}/loading".replace(/\/\//g, "/")
+			dasherized_path = @dasherized path
+			@Debug "Loading", "Fetching: #{path}"
+			@Debug "Loading", "Load Path: #{loading_path}"
+			
+			if loading_path of @Templates && $(".rdr-template-#{dasherized_path}-outlet").length
+				@Log "Loading", "Found: #{loading_path}"
+				placer = $(".rdr-template-#{dasherized_path}-outlet")
+				[placer, html] = @generateView loading_path, placer
+				break
+		
+		unless placer.length
+			application_loading_path = "/loading"
+			if application_loading_path of @Templates
+				@Debug "Loading", "Use Application: #{application_loading_path}"
+				placer = $(@Config.container).find(".rdr-template-application-outlet") unless placer.length
+				[placer, html] = @generateView application_loading_path, placer, @Templates[application_loading_path]
+		
+		placer.append html if placer.length

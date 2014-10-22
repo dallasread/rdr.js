@@ -1,13 +1,6 @@
 RDR = class extends RDR
 	currentPath: "/"
 	
-	buildRoute: (segments) ->
-		r = @
-		
-		Q.allSettled( @initControllers segments ).then ->
-			r.generateViews segments.slice(0).reverse()
-			r.isLoading = false
-		
 	pathForSegments: (pieces, reverse = false, index = 0) ->
 		segments = pieces.slice(0)
 		segments.reverse() if reverse
@@ -28,7 +21,9 @@ RDR = class extends RDR
 		else
 			@currentPath = new_path
 			@Log "Router", "Found: #{new_path}"
-			@buildRoute segments
+			Q.allSettled( r.initControllers segments ).then ->
+				r.generateViews segments.slice(0).reverse()
+				r.isLoading = false
 	
 	findRoute: (path, pristine = true, selected_path = [], routes = {}) ->
 		path = path.slice 1 if path[0] == "/"

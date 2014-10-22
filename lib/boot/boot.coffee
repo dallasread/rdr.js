@@ -44,7 +44,7 @@ RDR = class extends RDR
 				attrs[path] = value
 				r.save attrs
 			false
-		
+			
 		$(@Config.container).on "click", "[data-rdr-bind-event='click']", ->
 			r.executeEvent $(this)
 			false

@@ -6,15 +6,22 @@ RDR = class extends RDR
 		r = @
 		
 		Handlebars.registerHelper "bind-attr", (options) ->
-			is_loop = "_parent" of options.data
+			in_loop = false
 			attrs = ""
-		
+			path = ""
+			
+			if "path" of options.hash
+				in_loop = true
+				path = $(options.hash.path).attr("data-rdr-bind-html").replace("/_path", "")
+			
 			for attr,key of options.hash
-				key = "canned/sweet/#{key}" if is_loop
-				attrs += "data-rdr-bind-attr=\"#{attr}\" "
-				attrs += "data-rdr-bind-key=\"#{key}\" "
-				value = r.escapeQuotes r.getByPath(r.vars, key.replace(/\//g, "."))
-				attrs += "#{attr}=\"#{value}\""
+				if attr != "path"
+					key = "#{path}/#{key}" if in_loop
+
+					attrs += "data-rdr-bind-attr=\"#{attr}\" "
+					attrs += "data-rdr-bind-key=\"#{key}\" "
+					value = r.escapeQuotes r.getLocalVarByPath key
+					attrs += "#{attr}=\"#{value}\""
 		
 			new Handlebars.SafeString(attrs)
 	
