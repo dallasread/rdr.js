@@ -6,13 +6,15 @@ RDR = class extends RDR
 		r = @
 		
 		Handlebars.registerHelper "bind-attr", (options) ->
+			is_loop = "_parent" of options.data
 			attrs = ""
 		
-			for k,v of options.hash
-				value = r.escapeQuotes r.getByPath(r.vars, v)
-				attrs += "data-rdr-bind-attr=\"#{k}\" "
-				attrs += "data-rdr-bind-key=\"#{v.replace(/\./g, "/")}\" "
-				attrs += "#{k}=\"#{value}\""
+			for attr,key of options.hash
+				key = "canned/sweet/#{key}" if is_loop
+				attrs += "data-rdr-bind-attr=\"#{attr}\" "
+				attrs += "data-rdr-bind-key=\"#{key}\" "
+				value = r.escapeQuotes r.getByPath(r.vars, key.replace(/\//g, "."))
+				attrs += "#{attr}=\"#{value}\""
 		
 			new Handlebars.SafeString(attrs)
 	
