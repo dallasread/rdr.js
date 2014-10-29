@@ -28,6 +28,8 @@ RDR = class extends RDR
 			[in_loop, path] = r.extractPath options
 
 			for attr,key of options.hash
+				key = r.slasherized key
+
 				if attr == "event"
 					attrs += "data-rdr-bind-#{attr}=\"#{key}\" "
 				else
@@ -64,10 +66,11 @@ RDR = class extends RDR
 				template = "/partials/#{path}"
 			
 			if template of r.Templates
-				output += "<script class=\"rdr-collection-first-#{variable}\"></script>"
+				output += "<script class=\"rdr-collection-first-#{variable}\" data-template=\"#{template}\"></script>"
 				for k,v of collection
-					output += r.Templates[template] v
-				output += "<script class=\"rdr-collection-last-#{variable}\"></script>"
+					html = r.buildPartial template, v, "#{variable}/#{k}"
+					output += html
+				output += "<script class=\"rdr-collection-last-#{variable}\" data-template=\"#{template}\"></script>"
 			else
 				r.Warn "Partials", "Not Found: #{template}"
 

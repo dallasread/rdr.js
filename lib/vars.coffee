@@ -6,6 +6,8 @@ RDR = class extends RDR
 		@prepareVars "", @Vars, true
 	
 	prepareVars: (parent_key = "", parent_value = {}, synchronous = false) ->
+		parent_key = @slasherized parent_key
+		
 		for key,value of parent_value
 			var_key = ""
 			var_key += parent_key
@@ -13,14 +15,12 @@ RDR = class extends RDR
 			var_key += key
 
 			if typeof value == "object"
-				value._path = var_key
-				# value._key = key
-				value._parent_key = parent_key
+				value._path = @slasherized var_key
+				value._parent_key = @slasherized parent_key
 				@prepareVars var_key, value, synchronous
 			else
 				@setLocalVarByPath @Vars, var_key, value
-				@updateView var_key, value unless synchronous
-				value = "<span data-rdr-bind-html='#{var_key.replace(/\//g, ".")}'>#{value}</span>"
+				value = "<span data-rdr-bind-html='#{var_key}'>#{value}</span>"
 				@setLocalVarByPath @synchronousVars, var_key, value
 		
 		if synchronous
@@ -30,18 +30,19 @@ RDR = class extends RDR
 			@Vars
 	
 	updateLocalVar: (path, value, synchronous = false) ->
-		path = path.replace(/\//g, ".")
-		@prepareVars path, value, synchronous
-		@Log "Vars", "Set: #{path}"
-		@DSDeferred.promise if synchronous
+		if "#{path}".length
+			@prepareVars path, value, synchronous
+			@Log "Vars", "Set: #{path}"
+			# @updateView path, value unless synchronous
+			@DSDeferred.promise if synchronous
 	
 	deleteLocalVarByPath: (path) ->
-		path = path.replace(/\//g, ".")
+		path = @dotterized "#{path}"
 		path = @getLocalVarByPath path
 		@deleteLocalVar path
 	
 	deleteLocalVar: (path_str) ->
-		path_str = path_str.replace(/\//g, ".")
+		path_str = @dotterized "#{path_str}"
 		d = "delete this.Vars"
 		for p in path_str.split(".")
 			d += "[\"#{p}\"]"
@@ -51,7 +52,7 @@ RDR = class extends RDR
 	
 	getLocalVarByPath: (path_str, clone = true) ->
 		o = ""
-		path_str = path_str.replace(/\//g, ".")
+		path_str = @dotterized path_str
 		path = path_str.split(".")
 		
 		if clone
@@ -69,7 +70,7 @@ RDR = class extends RDR
 		Vars
 			
 	setLocalVarByPath: (obj, path_str, value) ->
-		path_str = path_str.replace(/\//g, ".")
+		path_str = @dotterized path_str
 		path = path_str.split(".")
 		pList = path
 		len = pList.length

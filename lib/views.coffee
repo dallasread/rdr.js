@@ -1,9 +1,19 @@
 RDR = class extends RDR
 	isLoading: false
+	
+	slasherized: (path) ->
+		path = "#{path}".replace(/\/|\./g, "/")
+		path = path.slice(1) if path[0] == "/"
+		path
+	
+	dotterized: (path) ->
+		path = "#{path}".replace(/\/|\-/g, ".")
+		path = path.slice(1) if path[0] == "."
+		path
 
 	dasherized: (path) ->
-		path = path.slice(1) if path[0] == "/"
-		path = path.replace(/\//g, "-")
+		path = "#{path}".replace(/\/|\./g, "-")
+		path = path.slice(1) if path[0] == "-"
 		path
 	
 	markActiveRoutes: (segments) ->
@@ -56,24 +66,44 @@ RDR = class extends RDR
 		data.outlet = "<div class=\"rdr-template-#{dasherized_path}-outlet\">#{data.outlet}</div>"
 		"<div class=\"rdr-template rdr-template-#{dasherized_path}\" data-path=\"/#{dasherized_path.replace(/\-/g, "/")}\">#{template(data)}</div>"
 	
-	updateView: (key, value = false) ->
-		key = "#{key}".replace(/\//g, ".")
-		console.log "update view for #{key}"
-
-		if $("[data-rdr-bind-html='#{key}']").length
-			$("[data-rdr-bind-html='#{key}']").html value
-			$("[data-rdr-bind-key='#{key}']").each ->
-				attr = $(this).attr("data-rdr-bind-attr")
-
-				if attr == "value"
-					$(this).val value
-				else
-					$(this).attr attr, value
-
-		else if !value
-			# console.log "remove #{key}"
+	buildPartial: (template, data = {}, path) ->
+		if template of @Templates
+			html = $(@Templates[template] data)
+			html.attr "data-rdr-bind-model", path
+			html = $("<div>").html(html).html()
+			html
 		else
-			# console.log "added #{key}"
+			""
+	
+	updateView: (key, value = false) ->
+		key = @slasherized key
+		model = typeof value == "object"
+		
+		if !value
+			$("[data-rdr-bind-model='#{key}']").remove()
+		else
+			if model
+				if $("[data-rdr-bind-model='#{key}']").length
+					for k,v in value
+						@updateVarOnPage k, v
+				else
+					placer = $("script.rdr-collection-first-#{key.split("/")[0]}")
+					template = placer.attr("data-template")
+					value._path = key
+					html = @buildPartial template, value, key
+					$(html).insertAfter placer
+			else
+				@updateVarOnPage key, value
+	
+	updateVarOnPage: (k, v) ->
+		$("[data-rdr-bind-html='#{k}']").html v
+		$("[data-rdr-bind-key='#{k}']").each ->
+			attr = $(this).attr("data-rdr-bind-attr")
+
+			if attr == "value"
+				$(this).val v
+			else
+				$(this).attr attr, v
 	
 	showLoading: (segments, placer = "", html = "") ->
 		segments = segments.slice(1).reverse()

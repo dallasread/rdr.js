@@ -38,14 +38,13 @@ RDR = class extends RDR
 				@Debug "Listeners", "Read From Cache: #{path}"
 			else
 				@DS.child(path).on "child_changed", (snapshot) ->
-					console.log "#{variable}/#{snapshot.name()}"
 					r.updateLocalVar "#{variable}/#{snapshot.name()}", snapshot.val()
 				
-				# @DS.child(path).on "child_added", (snapshot) ->
-				# 	r.updateLocalVar "#{variable}/#{snapshot.name()}", snapshot.val()
-				# 
-				# @DS.child(path).on "child_removed", (snapshot) ->
-				# 	r.deleteLocalVar "#{variable}/#{snapshot.name()}"
+				@DS.child(path).on "child_added", (snapshot) ->
+					r.updateLocalVar "#{variable}/#{snapshot.name()}", snapshot.val()
+
+				@DS.child(path).on "child_removed", (snapshot) ->
+					r.deleteLocalVar "#{variable}/#{snapshot.name()}"
 
 				@DSListeners.push path
 				@Debug "Listeners", "Added: #{path}"
@@ -53,13 +52,14 @@ RDR = class extends RDR
 			r.DSDeferred.promise
 	
 	deletebyPath: (ds_path) ->
+		ds_path = @slasherized ds_path
 		r = @
 		
 		@DS.child(ds_path).remove (error) ->
 			r.DSCallback "delete", ds_path, false, error
 	
 	varPathToDSPath: (path) ->
-		variable = path.replace(/\./g, "/").split("/")[0]
+		variable = @slasherized("#{path}").split("/")[0]
 		base_path = @varChart[variable]
 		if typeof path != "undefined" then "#{base_path}#{path.split(variable)[1]}".replace(/\./g, "/") else false
 
@@ -92,15 +92,10 @@ RDR = class extends RDR
 		"#{str}".charAt(0).toUpperCase() + "#{str}".slice(1)
 	
 	DSCallback: (action, path, value, error) ->
-		r = @
-
-		if !error
-			d = {}
-			d[path] = value
-			r.updateLocalVar "", d
-			@Log "DS", "#{@capitalize action}d: #{path}"
-		else
-			@Warn "DS", "#{@capitalize} Failed: #{value}"
-
+		if error
+			r = @
+			
 			@DS.child(path).once "value", (snapshot) ->
 				r.updateView path, value
+			
+			@Warn "DS", "#{@capitalize} Failed: #{value}"
