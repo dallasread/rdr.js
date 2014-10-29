@@ -15,8 +15,8 @@ RDR = class extends RDR
 		new_path = "/#{segments.join("/")}"
 		@markActiveRoutes routes
 		@showLoading routes
-	
-		if new_path == @currentPath
+
+		if path == @currentPath
 			@Log "Router", "Already Active: #{path}"
 		else
 			@currentPath = new_path
@@ -26,6 +26,7 @@ RDR = class extends RDR
 				r.isLoading = false
 	
 	findRoute: (path, pristine = true, selected_path = [], routes = {}) ->
+		@PathIsDynamic = false
 		path = path.slice 1 if path[0] == "/"
 		routes = @Routes if pristine
 		
@@ -36,8 +37,15 @@ RDR = class extends RDR
 	
 			for route,children of routes
 				route = route.replace(/\//g, "")
-	
-				if route == folders[0]
+				is_variable = route.indexOf(":") != -1
+				
+				if is_variable
+					@PathIsDynamic = true
+					variable = route.replace(/\:/g, "")
+					@Params[variable] = path
+
+				if route == folders[0] || is_variable
+					route = children if typeof children == "string"
 					selected_path.push route
 					path = path.slice route.length
 					if typeof children == "object"

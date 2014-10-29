@@ -3,7 +3,7 @@ RDR = class extends RDR
 	synchronousVars: {}
 	
 	fetchSynchronousVars: ->
-		@prepareVars "", @vars, true
+		@prepareVars "", @Vars, true
 	
 	prepareVars: (parent_key = "", parent_value = {}, synchronous = false) ->
 		for key,value of parent_value
@@ -15,24 +15,25 @@ RDR = class extends RDR
 			if typeof value == "object"
 				value._path = var_key
 				# value._key = key
-				# value._parent_key = parent_key
+				value._parent_key = parent_key
 				@prepareVars var_key, value, synchronous
 			else
-				@setLocalVarByPath @vars, var_key, value
-				@updateView var_key, value
-				value = "<span data-rdr-bind-html='#{var_key}'>#{value}</span>"
+				@setLocalVarByPath @Vars, var_key, value
+				@updateView var_key, value unless synchronous
+				value = "<span data-rdr-bind-html='#{var_key.replace(/\//g, ".")}'>#{value}</span>"
 				@setLocalVarByPath @synchronousVars, var_key, value
 		
 		if synchronous
-			synchronous.resolve()
+			@removeDeferred()
 			@synchronousVars
 		else
-			@vars
+			@Vars
 	
 	updateLocalVar: (path, value, synchronous = false) ->
+		path = path.replace(/\//g, ".")
 		@prepareVars path, value, synchronous
 		@Log "Vars", "Set: #{path}"
-		synchronous.promise if synchronous
+		@DSDeferred.promise if synchronous
 	
 	deleteLocalVarByPath: (path) ->
 		path = path.replace(/\//g, ".")
@@ -41,11 +42,11 @@ RDR = class extends RDR
 	
 	deleteLocalVar: (path_str) ->
 		path_str = path_str.replace(/\//g, ".")
-		d = "delete this.vars"
+		d = "delete this.Vars"
 		for p in path_str.split(".")
 			d += "[\"#{p}\"]"
 		eval d
-		eval d.replace("this.vars", "this.synchronousVars")
+		eval d.replace("this.Vars", "this.synchronousVars")
 		@updateView path_str
 	
 	getLocalVarByPath: (path_str, clone = true) ->
@@ -54,18 +55,18 @@ RDR = class extends RDR
 		path = path_str.split(".")
 		
 		if clone
-			vars = $.extend {}, @vars
+			Vars = $.extend {}, @Vars
 		else
-			vars = @vars
+			Vars = @Vars
 
 		for p in path
-			if p of vars
-				vars = vars[p]
+			if p of Vars
+				Vars = Vars[p]
 			else
-				vars = ""
+				Vars = ""
 				break
 			
-		vars
+		Vars
 			
 	setLocalVarByPath: (obj, path_str, value) ->
 		path_str = path_str.replace(/\//g, ".")

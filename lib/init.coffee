@@ -1,9 +1,11 @@
 class @RDR
-	glob: {}
-	vars: {}
+	Glob: {}
+	Vars: {}
 	Controllers: {}
 	Models: {}
 	Templates: {}
 	Routes: {}
+	Params: {}
 	Initializers: []
 	DS: null
+	PathIsDynamic: false

@@ -37,15 +37,15 @@ RDR = class extends RDR
 		dasherized_path = @dasherized view_path
 		@Log "Views", "Fetching: #{view_path}"
 	
-		if $(".rdr-template-#{dasherized_path}").length
+		if $(".rdr-template-#{dasherized_path}").length && html != ""
 			placer = $(".rdr-template-#{dasherized_path}-outlet") unless placer.length
 			@Warn "Views", "Already Present: #{view_path}"
 		else
 			if view_path of @Templates
-				vars = $.extend {}, @synchronousVars
-				vars.vars = @vars
-				vars.outlet = html
-				html = @buildFromTemplate @Templates[view_path], vars, dasherized_path
+				Vars = $.extend {}, @synchronousVars
+				Vars.Vars = @Vars
+				Vars.outlet = html
+				html = @buildFromTemplate @Templates[view_path], Vars, dasherized_path
 				@Log "Views", "Generated: #{view_path}"
 			else
 				@Warn "Views", "Not Found: #{view_path}"
@@ -57,11 +57,10 @@ RDR = class extends RDR
 		"<div class=\"rdr-template rdr-template-#{dasherized_path}\" data-path=\"/#{dasherized_path.replace(/\-/g, "/")}\">#{template(data)}</div>"
 	
 	updateView: (key, value = false) ->
-		key = "#{key}".replace(/\//, ".")
+		key = "#{key}".replace(/\//g, ".")
+		console.log "update view for #{key}"
 
-		if !value
-			# DELETE ROW/LI
-		else if "ROW EXISTS"
+		if $("[data-rdr-bind-html='#{key}']").length
 			$("[data-rdr-bind-html='#{key}']").html value
 			$("[data-rdr-bind-key='#{key}']").each ->
 				attr = $(this).attr("data-rdr-bind-attr")
@@ -70,8 +69,11 @@ RDR = class extends RDR
 					$(this).val value
 				else
 					$(this).attr attr, value
+
+		else if !value
+			# console.log "remove #{key}"
 		else
-			# ADD ROW!!!
+			# console.log "added #{key}"
 	
 	showLoading: (segments, placer = "", html = "") ->
 		segments = segments.slice(1).reverse()

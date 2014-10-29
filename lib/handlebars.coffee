@@ -6,10 +6,9 @@ RDR = class extends RDR
 		in_loop = false
 		path = ""
 		
-		if "path" of options.hash
+		if "_path" of options.data.root
 			in_loop = true
-			path = $(options.hash.path).attr("data-rdr-bind-html")
-			path = path.replace(/\/(_path|delete)/, "")
+			path = options.data.root._path
 
 		[in_loop, path]
 	
@@ -19,7 +18,7 @@ RDR = class extends RDR
 		else if "#{str}".slice(-1) == "s"
 			"#{str}".slice(-1)
 		else
-			str
+			"#{str}"
 
 	handlebarsHelpers: ->
 		r = @
@@ -27,19 +26,16 @@ RDR = class extends RDR
 		Handlebars.registerHelper "bind-attr", (options) ->
 			attrs = ""
 			[in_loop, path] = r.extractPath options
-			
-			options.hash.event = "blur" unless "event" of options.hash
-			
+
 			for attr,key of options.hash
-				if attr != "path"
-					if attr == "event"
-						attrs += "data-rdr-bind-#{attr}=\"#{key}\" "
-					else
-						key = "#{path}/#{key}" if in_loop
-						attrs += "data-rdr-bind-attr=\"#{attr}\" "
-						attrs += "data-rdr-bind-key=\"#{key}\" "
-						value = r.escapeQuotes r.getLocalVarByPath key
-						attrs += "#{attr}=\"#{value}\""
+				if attr == "event"
+					attrs += "data-rdr-bind-#{attr}=\"#{key}\" "
+				else
+					key = "#{path}/#{key}" if in_loop
+					attrs += "data-rdr-bind-attr=\"#{attr}\" "
+					attrs += "data-rdr-bind-key=\"#{key}\" "
+					value = r.escapeQuotes r.getLocalVarByPath key
+					attrs += "#{attr}=\"#{value}\""
 		
 			new Handlebars.SafeString(attrs)
 	
@@ -57,23 +53,22 @@ RDR = class extends RDR
 		
 			new Handlebars.SafeString(attrs)
 		
-		Handlebars.registerHelper "render", (variable, options) ->
+		Handlebars.registerHelper "render", (variable, template..., options) ->
 			output = ""
-			template = false
-			collection = r.vars[variable]
+			collection = r.Vars[variable]
+			template = template[0] if typeof template == "object"
 			
 			if typeof template != "string"
 				first = collection[Object.keys(collection)[0]]
-				path = r.singularize first._parent_key if typeof first != "undefined"
-				path = r.singularize variable
+				path = r.singularize if typeof first != "undefined" then first._parent_key else variable					
 				template = "/partials/#{path}"
 			
 			if template of r.Templates
+				output += "<script class=\"rdr-collection-first-#{variable}\"></script>"
 				for k,v of collection
-					# subTemplateContext = $.extend {}, this, v
-					# console.log r.Templates[template] v
-					output += "<tr><td>awesome</td></tr>"
+					output += r.Templates[template] v
+				output += "<script class=\"rdr-collection-last-#{variable}\"></script>"
 			else
-				r.Warn "Handlebars", "Partial Not Found: #{template}"
+				r.Warn "Partials", "Not Found: #{template}"
 
 			new Handlebars.SafeString(output)
