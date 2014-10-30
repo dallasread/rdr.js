@@ -6,7 +6,7 @@ RDR = class extends RDR
 		@prepareVars "", @Vars, true
 	
 	prepareVars: (parent_key = "", parent_value = {}, synchronous = false) ->
-		parent_key = @slasherized parent_key
+		parent_key = @slasherize parent_key
 		
 		if !synchronous && parent_key.replace(/\//g, "").length && typeof parent_value == "object"
 			parent_value._path = parent_key
@@ -23,8 +23,8 @@ RDR = class extends RDR
 				var_key += key
 
 				if typeof value == "object"
-					value._path = @slasherized var_key
-					value._parent_key = @slasherized parent_key
+					value._path = @slasherize var_key
+					value._parent_key = @slasherize parent_key
 					@prepareVars var_key, value, synchronous
 				else
 					@setLocalVarByPath @Vars, var_key, value
@@ -44,12 +44,12 @@ RDR = class extends RDR
 		@DSDeferred.promise if synchronous
 	
 	deleteLocalVarByPath: (path) ->
-		path = @dotterized "#{path}"
+		path = @dotterize "#{path}"
 		path = @getLocalVarByPath path
 		@deleteLocalVar path
 	
 	deleteLocalVar: (path_str) ->
-		path_str = @dotterized "#{path_str}"
+		path_str = @dotterize "#{path_str}"
 		d = "delete this.Vars"
 		for p in path_str.split(".")
 			d += "[\"#{p}\"]"
@@ -59,7 +59,7 @@ RDR = class extends RDR
 	
 	getLocalVarByPath: (path_str, clone = true) ->
 		o = ""
-		path_str = @dotterized path_str
+		path_str = @dotterize path_str
 		path = path_str.split(".")
 		
 		if clone
@@ -77,7 +77,7 @@ RDR = class extends RDR
 		Vars
 			
 	setLocalVarByPath: (obj, path_str, value) ->
-		path_str = @dotterized path_str
+		path_str = @dotterize path_str
 		path = path_str.split(".")
 		pList = path
 		len = pList.length

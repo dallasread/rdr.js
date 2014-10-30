@@ -1,12 +1,12 @@
 RDR = class extends RDR
 	isLoading: false
 	
-	slasherized: (path) ->
+	slasherize: (path) ->
 		path = "#{path}".replace(/\./g, "/")
 		path = "/#{path}" if path[0] != "/"
 		path
 	
-	dotterized: (path) ->
+	dotterize: (path) ->
 		path = "#{path}".replace(/\//g, ".")
 		path = path.slice(1) if path[0] == "."
 		path
@@ -39,7 +39,7 @@ RDR = class extends RDR
 			@Log "Routes", "Resolved: #{current_path}"
 	
 	generateView: (view_path, placer = "", html = "") ->
-		view_path = @slasherized view_path
+		view_path = @slasherize view_path
 		@Log "Views", "Fetching: #{view_path}"
 	
 		if $("[data-rdr-template='#{view_path}']").length && html != ""
@@ -58,13 +58,13 @@ RDR = class extends RDR
 		[placer, html]
 	
 	buildFromTemplate: (template, data = {}, path) ->
-		path = @slasherized path
+		path = @slasherize path
 		data.outlet = "<div data-rdr-template-outlet=\"#{path}\">#{data.outlet}</div>"
 		"<div class=\"rdr-template\" data-rdr-template=\"#{path}\">#{template(data)}</div>"
 	
 	buildPartial: (template, data = {}, path) ->
 		if template of @Templates
-			path = @slasherized path
+			path = @slasherize path
 			html = $(@Templates[template] data)
 			html.attr "data-rdr-bind-model", path
 			html = $("<div>").html(html).html()
@@ -73,7 +73,7 @@ RDR = class extends RDR
 			""
 	
 	updateView: (path, value = false) ->
-		path = @slasherized path
+		path = @slasherize path
 		model = typeof value == "object"
 		
 		if !value
@@ -107,7 +107,7 @@ RDR = class extends RDR
 		
 		for segment,index in segments
 			path = @pathForSegments segments, false, index
-			path = @slasherized path
+			path = @slasherize path
 			loading_path = "#{path}/loading".replace(/\/\//g, "/")
 			@Debug "Loading", "Fetching: #{path}"
 			@Debug "Loading", "Load Path: #{loading_path}"

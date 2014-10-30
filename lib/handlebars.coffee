@@ -42,7 +42,7 @@ RDR = class extends RDR
 				if attr == "event"
 					attrs += "data-rdr-bind-#{attr}=\"#{key}\" "
 				else
-					key = r.slasherized key
+					key = r.slasherize key
 					key = "#{path}#{key}" if in_loop
 					attrs += "data-rdr-bind-attr=\"#{attr}\" "
 					attrs += "data-rdr-bind-key=\"#{key}\" "
@@ -73,7 +73,7 @@ RDR = class extends RDR
 			if typeof template != "string"
 				first = collection[Object.keys(collection)[0]]
 				path = r.singularize if typeof first != "undefined" then first._parent_key else variable
-				path = r.slasherized path
+				path = r.slasherize path
 				template = "/partials#{path}"
 			
 			if template of r.Templates

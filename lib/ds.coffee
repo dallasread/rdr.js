@@ -52,21 +52,21 @@ RDR = class extends RDR
 			r.DSDeferred.promise
 	
 	deletebyPath: (ds_path) ->
-		ds_path = @slasherized ds_path
+		ds_path = @slasherize ds_path
 		r = @
 		
 		@DS.child(ds_path).remove (error) ->
 			r.DSCallback "delete", ds_path, false, error
 	
 	varPathToDSPath: (path) ->
-		slashed_path = @slasherized path
+		slashed_path = @slasherize path
 		variable = "#{slashed_path}".split("/")[1]
-		pluralized = @pluralize variable
+		pluralize = @pluralize variable
 		
 		if variable of @varChart
 			base_path = @varChart[variable]
-		else if pluralized of @varChart
-			base_path = @varChart[pluralized]
+		else if pluralize of @varChart
+			base_path = @varChart[pluralize]
 
 		if typeof base_path != "undefined" then "#{base_path}#{slashed_path.split(variable)[1]}" else false
 
