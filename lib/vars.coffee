@@ -12,20 +12,24 @@ RDR = class extends RDR
 			parent_value._path = parent_key
 			parent_value._parent_key = parent_value._path.substr 0, parent_value._path.lastIndexOf("/")
 		
-		for key,value of parent_value
-			var_key = ""
-			var_key += parent_key
-			var_key += "/" if var_key.length
-			var_key += key
+		if typeof parent_value == "object" && !Object.keys(parent_value).length
+			@setLocalVarByPath @Vars, parent_key, {}
+			@setLocalVarByPath @synchronousVars, parent_key, {}
+		else
+			for key,value of parent_value
+				var_key = ""
+				var_key += parent_key
+				var_key += "/" if var_key.length
+				var_key += key
 
-			if typeof value == "object"
-				value._path = @slasherized var_key
-				value._parent_key = @slasherized parent_key
-				@prepareVars var_key, value, synchronous
-			else
-				@setLocalVarByPath @Vars, var_key, value
-				value = "<span data-rdr-bind-html='#{var_key}'>#{value}</span>"
-				@setLocalVarByPath @synchronousVars, var_key, value
+				if typeof value == "object"
+					value._path = @slasherized var_key
+					value._parent_key = @slasherized parent_key
+					@prepareVars var_key, value, synchronous
+				else
+					@setLocalVarByPath @Vars, var_key, value
+					value = "<span data-rdr-bind-html='#{var_key}'>#{value}</span>"
+					@setLocalVarByPath @synchronousVars, var_key, value
 		
 		if synchronous
 			@removeDeferred()

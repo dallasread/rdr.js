@@ -14,11 +14,22 @@ RDR = class extends RDR
 	
 	singularize: (str) ->
 		if "#{str}".slice(-3) == "ies"
-			"#{"#{str}".slice(-3)}y"
+			"#{"#{str}".slice(0, -3)}y"
 		else if "#{str}".slice(-1) == "s"
-			"#{str}".slice(-1)
+			"#{str}".slice(0, -1)
 		else
 			"#{str}"
+	
+	pluralize: (str) ->
+		if str of @Models && "plural" of @Models[str]
+			@Models[str].plural
+		else
+			if "#{str}".slice(-1) == "y"
+				"#{str.slice(0, -1)}ies"
+			else if "#{str}".slice(-1) == "s"
+				"#{str}"
+			else
+				"#{str}s"
 
 	handlebarsHelpers: ->
 		r = @
@@ -61,8 +72,9 @@ RDR = class extends RDR
 			
 			if typeof template != "string"
 				first = collection[Object.keys(collection)[0]]
-				path = r.singularize if typeof first != "undefined" then first._parent_key else variable					
-				template = "/partials/#{path}"
+				path = r.singularize if typeof first != "undefined" then first._parent_key else variable
+				path = r.slasherized path
+				template = "/partials#{path}"
 			
 			if template of r.Templates
 				output += "<script class=\"rdr-collection-first-#{variable}\" data-template=\"#{template}\"></script>"

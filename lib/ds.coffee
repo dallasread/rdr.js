@@ -18,7 +18,7 @@ RDR = class extends RDR
 	find: (model, where, variable = false) ->
 		r = @
 		m = @Models[model]
-		variable = @pluralModel model if !variable && !("id" of where)
+		variable = @pluralize model if !variable && !("id" of where)
 		variable = model if !variable && "id" of where
 
 		if typeof m != "undefined"
@@ -59,10 +59,16 @@ RDR = class extends RDR
 			r.DSCallback "delete", ds_path, false, error
 	
 	varPathToDSPath: (path) ->
-		path = @slasherized path
-		variable = "#{path}".split("/")[1]
-		base_path = @varChart[variable]
-		if typeof path != "undefined" then "#{base_path}#{path.split(variable)[1]}" else false
+		slashed_path = @slasherized path
+		variable = "#{slashed_path}".split("/")[1]
+		pluralized = @pluralize variable
+		
+		if variable of @varChart
+			base_path = @varChart[variable]
+		else if pluralized of @varChart
+			base_path = @varChart[pluralized]
+
+		if typeof base_path != "undefined" then "#{base_path}#{slashed_path.split(variable)[1]}" else false
 
 	delete: (data) ->
 		ds_path = @varPathToDSPath data._path
