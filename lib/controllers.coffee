@@ -1,5 +1,5 @@
 RDR = class extends RDR
-	initControllers: (controllers) ->
+	initControllers: (controllers, call) ->
 		initializers = []
 		
 		for c,index in controllers
@@ -7,8 +7,9 @@ RDR = class extends RDR
 			path = "/application" if path == "/"
 			@Log "Controllers", "Fetching: #{path}"
 			
-			if path of @Controllers && "init" of @Controllers[path]
+			if path of @Controllers && call of @Controllers[path]
 				initializers.push path
+				@Log "Controllers", "Executing: #{path}"
 
 		r = @
-		Q.all(initializers.map (c) -> r.Controllers[c].init())
+		Q.all(initializers.map (c) -> r.Controllers[c][call]())

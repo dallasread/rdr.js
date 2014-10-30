@@ -23,6 +23,7 @@ RDR = class extends RDR
 				var_key += key
 
 				if typeof value == "object"
+					value._key = key
 					value._path = @slasherize var_key
 					value._parent_key = @slasherize parent_key
 					@prepareVars var_key, value, synchronous
@@ -35,12 +36,12 @@ RDR = class extends RDR
 			@removeDeferred()
 			@synchronousVars
 		else
+			@updateView parent_key, parent_value
 			@Vars
 	
 	updateLocalVar: (path, value, synchronous = false) ->
 		@prepareVars path, value, synchronous
 		@Log "Vars", "Set: #{path}"
-		@updateView path, value if !synchronous
 		@DSDeferred.promise if synchronous
 	
 	deleteLocalVarByPath: (path) ->
@@ -61,20 +62,13 @@ RDR = class extends RDR
 		o = ""
 		path_str = @dotterize path_str
 		path = path_str.split(".")
-		
-		if clone
-			Vars = $.extend {}, @Vars
-		else
-			Vars = @Vars
+		vars = if clone then $.extend {}, @Vars else @Vars
 
 		for p in path
-			if p of Vars
-				Vars = Vars[p]
-			else
-				Vars = ""
-				break
-			
-		Vars
+			if typeof vars == "object" && p of vars
+				vars = vars[p]
+
+		vars
 			
 	setLocalVarByPath: (obj, path_str, value) ->
 		path_str = @dotterize path_str

@@ -4,7 +4,7 @@ RDR = class extends RDR
 	markActiveRoutes: (segments) ->
 		segments = segments.slice(0).reverse()
 		paths = []
-		paths.push "a[href='#{window.location.hash}']"
+		paths.push "a[href='##{@hashPath}']"
 		
 		for segment,index in segments
 			path = @pathForSegments segments, false, index
@@ -13,7 +13,6 @@ RDR = class extends RDR
 		container = $(@Config.container)
 		container.find("a.active").removeClass "active"
 		container.find( paths.join(", ") ).addClass "active"
-		@Warn paths
 		
 	generateViews: (views, placer = "", html = "") ->
 		current_path = "/#{views.slice(0).reverse().join("/")}"
@@ -101,8 +100,7 @@ RDR = class extends RDR
 			path = @pathForSegments segments, false, index
 			path = @slasherize path
 			loading_path = "#{path}/loading".replace(/\/\//g, "/")
-			@Debug "Loading", "Fetching: #{path}"
-			@Debug "Loading", "Load Path: #{loading_path}"
+			@Log "Loading", "Fetching: #{loading_path}"
 			
 			if loading_path of @Templates && $("[data-rdr-template-outlet='#{path}']").length
 				@Log "Loading", "Found: #{loading_path}"
@@ -113,7 +111,7 @@ RDR = class extends RDR
 		unless placer.length
 			application_loading_path = "/loading"
 			if application_loading_path of @Templates
-				@Debug "Loading", "Use Application: #{application_loading_path}"
+				@Log "Loading", "Use Application: #{application_loading_path}"
 				placer = $(@Config.container).find("[data-rdr-template-outlet='/application']") unless placer.length
 				[placer, html] = @generateView application_loading_path, placer, @Templates[application_loading_path]
 		

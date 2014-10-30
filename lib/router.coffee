@@ -1,5 +1,6 @@
 RDR = class extends RDR
 	currentPath: "/"
+	hashPath: "/"
 	
 	pathForSegments: (pieces, reverse = false, index = 0) ->
 		segments = pieces.slice(0)
@@ -16,13 +17,15 @@ RDR = class extends RDR
 		@markActiveRoutes routes
 		@showLoading routes
 
-		if path == @currentPath
+		if @hashPath == path && new_path == @currentPath
 			@Log "Router", "Already Active: #{path}"
 		else
+			@hashPath = path
 			@currentPath = new_path
 			@Log "Router", "Found: #{new_path}"
-			Q.allSettled( r.initControllers segments ).then ->
+			Q.allSettled( r.initControllers segments, "before" ).then ->
 				r.generateViews segments.slice(0).reverse()
+				r.initControllers segments, "after"
 				r.isLoading = false
 	
 	findRoute: (path, pristine = true, selected_path = [], routes = {}) ->

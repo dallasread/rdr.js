@@ -23,12 +23,14 @@ RDR = class extends RDR
 		if /\#|hash/.test(@Config.history)
 			@Log "Booter", "RDR History is Now: #"
 			@Config.history = "#"
-			window.location.hash = "#/" if window.location.hash == ""
 			
 			$(window).bind "hashchange", ->
 				r.fetchPath window.location.hash.replace(/\#/g, "")
 			
-			$(window).trigger "hashchange"
+			if window.location.hash == ""
+				window.location.hash = "#/"
+			else
+				$(window).trigger "hashchange"
 			
 		else
 			$(@Config.container).on "click", "a[href^='#']", ->

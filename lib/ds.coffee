@@ -33,10 +33,16 @@ RDR = class extends RDR
 			
 			@DS.child(path).once "value", (snapshot) ->
 				r.updateLocalVar variable, snapshot.val(), true
-				
-			if cached					
+			
+			if cached
+				#unless variable of @Vars
+				#	local_cached_path = "/#{@pluralize model}"
+				#	local_cached_path = "#{local_cached_path}/#{where.id}" if "id" of where
+				#	@Vars[variable] = @getLocalVarByPath local_cached_path
+				@removeDeferred()
 				@Debug "Listeners", "Read From Cache: #{path}"
 			else
+								
 				@DS.child(path).on "child_changed", (snapshot) ->
 					r.updateLocalVar "#{variable}/#{snapshot.name()}", snapshot.val()
 				
@@ -57,6 +63,11 @@ RDR = class extends RDR
 		
 		@DS.child(ds_path).remove (error) ->
 			r.DSCallback "delete", ds_path, false, error
+			
+			if error
+				r.Warn "DS", "Unable to Delete: #{ds_path}"
+			else
+				r.Log "DS", "Deleted: #{ds_path}"
 	
 	varPathToDSPath: (path) ->
 		slashed_path = @slasherize path
@@ -68,10 +79,13 @@ RDR = class extends RDR
 		else if pluralize of @varChart
 			base_path = @varChart[pluralize]
 
-		if typeof base_path != "undefined" then "#{base_path}#{slashed_path.split(variable)[1]}" else false
+		if typeof base_path != "undefined"
+			"#{base_path}#{slashed_path.split(variable)[1]}"
+		else
+			false
 
-	delete: (data) ->
-		ds_path = @varPathToDSPath data._path
+	delete: (path) ->
+		ds_path = @varPathToDSPath path
 		@deletebyPath ds_path if ds_path
 	
 	create: (key, value) ->
