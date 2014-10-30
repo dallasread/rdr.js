@@ -81,8 +81,8 @@ RDR = class extends RDR
 		else
 			if model
 				if $("[data-rdr-bind-model='#{path}']").length
-					for k,v in value
-						@updateVarOnPage k, v
+					for k,v of value
+						@updateVarOnPage "#{path}/#{k}", v
 				else
 					placer = $("script.rdr-collection-last-#{path.split("/")[1]}")
 					template = placer.attr("data-template")
