@@ -5,7 +5,7 @@ RDR = class extends RDR
 		action = element.attr("data-rdr-bind-action")
 		
 		element.parents(".rdr-template").each ->
-			path = $(this).attr("data-path")
+			path = $(this).attr("data-rdr-template")
 			r.Log "Actions", "Fetching Path: #{path}"
 			
 			if path of r.Controllers && "actions" of r.Controllers[path] && action of r.Controllers[path]["actions"]

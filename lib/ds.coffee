@@ -42,7 +42,7 @@ RDR = class extends RDR
 				
 				@DS.child(path).on "child_added", (snapshot) ->
 					r.updateLocalVar "#{variable}/#{snapshot.name()}", snapshot.val()
-
+        
 				@DS.child(path).on "child_removed", (snapshot) ->
 					r.deleteLocalVar "#{variable}/#{snapshot.name()}"
 
@@ -59,9 +59,10 @@ RDR = class extends RDR
 			r.DSCallback "delete", ds_path, false, error
 	
 	varPathToDSPath: (path) ->
-		variable = @slasherized("#{path}").split("/")[0]
+		path = @slasherized path
+		variable = "#{path}".split("/")[1]
 		base_path = @varChart[variable]
-		if typeof path != "undefined" then "#{base_path}#{path.split(variable)[1]}".replace(/\./g, "/") else false
+		if typeof path != "undefined" then "#{base_path}#{path.split(variable)[1]}" else false
 
 	delete: (data) ->
 		ds_path = @varPathToDSPath data._path

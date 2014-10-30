@@ -8,6 +8,10 @@ RDR = class extends RDR
 	prepareVars: (parent_key = "", parent_value = {}, synchronous = false) ->
 		parent_key = @slasherized parent_key
 		
+		if !synchronous && parent_key.replace(/\//g, "").length && typeof parent_value == "object"
+			parent_value._path = parent_key
+			parent_value._parent_key = parent_value._path.substr 0, parent_value._path.lastIndexOf("/")
+		
 		for key,value of parent_value
 			var_key = ""
 			var_key += parent_key
@@ -30,11 +34,10 @@ RDR = class extends RDR
 			@Vars
 	
 	updateLocalVar: (path, value, synchronous = false) ->
-		if "#{path}".length
-			@prepareVars path, value, synchronous
-			@Log "Vars", "Set: #{path}"
-			# @updateView path, value unless synchronous
-			@DSDeferred.promise if synchronous
+		@prepareVars path, value, synchronous
+		@Log "Vars", "Set: #{path}"
+		@updateView path, value if !synchronous
+		@DSDeferred.promise if synchronous
 	
 	deleteLocalVarByPath: (path) ->
 		path = @dotterized "#{path}"

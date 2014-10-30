@@ -28,12 +28,11 @@ RDR = class extends RDR
 			[in_loop, path] = r.extractPath options
 
 			for attr,key of options.hash
-				key = r.slasherized key
-
 				if attr == "event"
 					attrs += "data-rdr-bind-#{attr}=\"#{key}\" "
 				else
-					key = "#{path}/#{key}" if in_loop
+					key = r.slasherized key
+					key = "#{path}#{key}" if in_loop
 					attrs += "data-rdr-bind-attr=\"#{attr}\" "
 					attrs += "data-rdr-bind-key=\"#{key}\" "
 					value = r.escapeQuotes r.getLocalVarByPath key

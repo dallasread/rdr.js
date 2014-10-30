@@ -2,18 +2,13 @@ RDR = class extends RDR
 	isLoading: false
 	
 	slasherized: (path) ->
-		path = "#{path}".replace(/\/|\./g, "/")
-		path = path.slice(1) if path[0] == "/"
+		path = "#{path}".replace(/\./g, "/")
+		path = "/#{path}" if path[0] != "/"
 		path
 	
 	dotterized: (path) ->
-		path = "#{path}".replace(/\/|\-/g, ".")
+		path = "#{path}".replace(/\//g, ".")
 		path = path.slice(1) if path[0] == "."
-		path
-
-	dasherized: (path) ->
-		path = "#{path}".replace(/\/|\./g, "-")
-		path = path.slice(1) if path[0] == "-"
 		path
 	
 	markActiveRoutes: (segments) ->
@@ -38,36 +33,38 @@ RDR = class extends RDR
 		if @currentPath != current_path
 			@Log "Routes", "Resolved, but No Longer Relevant: #{current_path}"
 		else
-			placer = $(@Config.container).find(".rdr-template-application-outlet") unless placer.length
+			placer = $(@Config.container).find("[data-rdr-template-outlet='/application']") unless placer.length
 			placer.html html
 			@markActiveRoutes views
 			@Log "Routes", "Resolved: #{current_path}"
 	
 	generateView: (view_path, placer = "", html = "") ->
-		dasherized_path = @dasherized view_path
+		view_path = @slasherized view_path
 		@Log "Views", "Fetching: #{view_path}"
 	
-		if $(".rdr-template-#{dasherized_path}").length && html != ""
-			placer = $(".rdr-template-#{dasherized_path}-outlet") unless placer.length
+		if $("[data-rdr-template='#{view_path}']").length && html != ""
+			placer = $("[data-rdr-template-outlet='#{view_path}']") unless placer.length
 			@Warn "Views", "Already Present: #{view_path}"
 		else
 			if view_path of @Templates
 				Vars = $.extend {}, @synchronousVars
 				Vars.Vars = @Vars
 				Vars.outlet = html
-				html = @buildFromTemplate @Templates[view_path], Vars, dasherized_path
+				html = @buildFromTemplate @Templates[view_path], Vars, view_path
 				@Log "Views", "Generated: #{view_path}"
 			else
 				@Warn "Views", "Not Found: #{view_path}"
 		
 		[placer, html]
 	
-	buildFromTemplate: (template, data = {}, dasherized_path) ->
-		data.outlet = "<div class=\"rdr-template-#{dasherized_path}-outlet\">#{data.outlet}</div>"
-		"<div class=\"rdr-template rdr-template-#{dasherized_path}\" data-path=\"/#{dasherized_path.replace(/\-/g, "/")}\">#{template(data)}</div>"
+	buildFromTemplate: (template, data = {}, path) ->
+		path = @slasherized path
+		data.outlet = "<div data-rdr-template-outlet=\"#{path}\">#{data.outlet}</div>"
+		"<div class=\"rdr-template\" data-rdr-template=\"#{path}\">#{template(data)}</div>"
 	
 	buildPartial: (template, data = {}, path) ->
 		if template of @Templates
+			path = @slasherized path
 			html = $(@Templates[template] data)
 			html.attr "data-rdr-bind-model", path
 			html = $("<div>").html(html).html()
@@ -75,25 +72,25 @@ RDR = class extends RDR
 		else
 			""
 	
-	updateView: (key, value = false) ->
-		key = @slasherized key
+	updateView: (path, value = false) ->
+		path = @slasherized path
 		model = typeof value == "object"
 		
 		if !value
-			$("[data-rdr-bind-model='#{key}']").remove()
+			$("[data-rdr-bind-model='#{path}']").remove()
 		else
 			if model
-				if $("[data-rdr-bind-model='#{key}']").length
+				if $("[data-rdr-bind-model='#{path}']").length
 					for k,v in value
 						@updateVarOnPage k, v
 				else
-					placer = $("script.rdr-collection-first-#{key.split("/")[0]}")
+					placer = $("script.rdr-collection-last-#{path.split("/")[1]}")
 					template = placer.attr("data-template")
-					value._path = key
-					html = @buildPartial template, value, key
-					$(html).insertAfter placer
+					value._path = path
+					html = @buildPartial template, value, path
+					$(html).insertBefore placer
 			else
-				@updateVarOnPage key, value
+				@updateVarOnPage path, value
 	
 	updateVarOnPage: (k, v) ->
 		$("[data-rdr-bind-html='#{k}']").html v
@@ -110,14 +107,14 @@ RDR = class extends RDR
 		
 		for segment,index in segments
 			path = @pathForSegments segments, false, index
+			path = @slasherized path
 			loading_path = "#{path}/loading".replace(/\/\//g, "/")
-			dasherized_path = @dasherized path
 			@Debug "Loading", "Fetching: #{path}"
 			@Debug "Loading", "Load Path: #{loading_path}"
 			
-			if loading_path of @Templates && $(".rdr-template-#{dasherized_path}-outlet").length
+			if loading_path of @Templates && $("[data-rdr-template-outlet='#{path}']").length
 				@Log "Loading", "Found: #{loading_path}"
-				placer = $(".rdr-template-#{dasherized_path}-outlet")
+				placer = $("[data-rdr-template-outlet='#{path}']")
 				[placer, html] = @generateView loading_path, placer
 				break
 		
@@ -125,7 +122,7 @@ RDR = class extends RDR
 			application_loading_path = "/loading"
 			if application_loading_path of @Templates
 				@Debug "Loading", "Use Application: #{application_loading_path}"
-				placer = $(@Config.container).find(".rdr-template-application-outlet") unless placer.length
+				placer = $(@Config.container).find("[data-rdr-template-outlet='/application']") unless placer.length
 				[placer, html] = @generateView application_loading_path, placer, @Templates[application_loading_path]
 		
 		placer.append html if placer.length
