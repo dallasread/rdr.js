@@ -95,9 +95,6 @@ RDR = class extends RDR
 		else
 			@Warn "Vars", "Bad Path: #{key}"
 	
-	capitalize: (str) ->
-		"#{str}".charAt(0).toUpperCase() + "#{str}".slice(1)
-	
 	DSCallback: (action, path, value, error) ->
 		if error
 			r = @

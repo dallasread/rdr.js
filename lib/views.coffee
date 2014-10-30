@@ -1,27 +1,19 @@
 RDR = class extends RDR
 	isLoading: false
 	
-	slasherize: (path) ->
-		path = "#{path}".replace(/\./g, "/")
-		path = "/#{path}" if path[0] != "/"
-		path
-	
-	dotterize: (path) ->
-		path = "#{path}".replace(/\//g, ".")
-		path = path.slice(1) if path[0] == "."
-		path
-	
 	markActiveRoutes: (segments) ->
 		segments = segments.slice(0).reverse()
 		paths = []
+		paths.push "a[href='#{window.location.hash}']"
 		
 		for segment,index in segments
 			path = @pathForSegments segments, false, index
 			paths.push "a[href='##{path}']"
-		
+
 		container = $(@Config.container)
 		container.find("a.active").removeClass "active"
 		container.find( paths.join(", ") ).addClass "active"
+		@Warn paths
 		
 	generateViews: (views, placer = "", html = "") ->
 		current_path = "/#{views.slice(0).reverse().join("/")}"

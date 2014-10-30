@@ -11,25 +11,6 @@ RDR = class extends RDR
 			path = options.data.root._path
 
 		[in_loop, path]
-	
-	singularize: (str) ->
-		if "#{str}".slice(-3) == "ies"
-			"#{"#{str}".slice(0, -3)}y"
-		else if "#{str}".slice(-1) == "s"
-			"#{str}".slice(0, -1)
-		else
-			"#{str}"
-	
-	pluralize: (str) ->
-		if str of @Models && "plural" of @Models[str]
-			@Models[str].plural
-		else
-			if "#{str}".slice(-1) == "y"
-				"#{str.slice(0, -1)}ies"
-			else if "#{str}".slice(-1) == "s"
-				"#{str}"
-			else
-				"#{str}s"
 
 	handlebarsHelpers: ->
 		r = @
@@ -42,11 +23,17 @@ RDR = class extends RDR
 				if attr == "event"
 					attrs += "data-rdr-bind-#{attr}=\"#{key}\" "
 				else
-					key = r.slasherize key
-					key = "#{path}#{key}" if in_loop
+					slashed_key = r.slasherize key
+					slashed_key = "#{path}#{slashed_key}" if in_loop
 					attrs += "data-rdr-bind-attr=\"#{attr}\" "
-					attrs += "data-rdr-bind-key=\"#{key}\" "
-					value = r.escapeQuotes r.getLocalVarByPath key
+					attrs += "data-rdr-bind-key=\"#{slashed_key}\" "
+					
+					if key.indexOf("{") != -1
+						template = Handlebars.compile key
+						value = template options.data.root
+					else
+						value = r.escapeQuotes r.getLocalVarByPath slashed_key
+
 					attrs += "#{attr}=\"#{value}\""
 		
 			new Handlebars.SafeString(attrs)
