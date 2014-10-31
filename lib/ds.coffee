@@ -96,21 +96,21 @@ RDR = class extends RDR
 		@deletebyPath ds_path if ds_path
 	
 	create: (key, value) ->
-		if key of @Models
-			m = @Models[@singularize key]
-			path = m.dataPath
-			path = model if typeof path == "undefined"
-			path_args = {}
-			
-			for k,v of value
-				if k[0] == "_"
-					delete value[k]
-					path_args[k.slice(1)] = v
-					
-			path = Handlebars.compile path
-			path = @slasherize path path_args
-		else
-			path = @varPathToDSPath key
+		# if key of @Models
+		# 	m = @Models[@singularize key]
+		# 	path = m.dataPath
+		# 	path = model if typeof path == "undefined"
+		# 	path_args = {}
+		# 	
+		# 	for k,v of value
+		# 		if k[0] == "_"
+		# 			delete value[k]
+		# 			path_args[k.slice(1)] = v
+		# 			
+		# 	path = Handlebars.compile path
+		# 	path = @slasherize path path_args
+		# else
+		path = @varPathToDSPath key
 
 		if path
 			r = @
