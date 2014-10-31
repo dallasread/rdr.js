@@ -24,25 +24,20 @@ RDR = class extends RDR
 	find: (model, where, variable = false) ->
 		r = @
 		m = @Models[model]
-		supplied_variable = variable != false
 		variable = @pluralize model if !variable && !("key" of where)
 		variable = model if !variable && "key" of where
 
 		if typeof m != "undefined"
 			path = m.dataPath
+			console.log ">>> #{path}"
 			path = model if typeof path == "undefined"
 			path = Handlebars.compile path
 			path = path where
+			console.log "||| #{path}"
 			path = "#{path}/#{where.key}" if "key" of where
 			@varChart[variable] = path
 			cached = @DSListeners.length && new RegExp(@DSListeners.join("|")).test path
 			deferred = @addDeferred()
-			
-			for k,v of m.fields
-				if v == "has_many"
-					where[model] = where.key
-					delete where.key
-					@find @singularize(k), where
 			
 			@DS.child(path).once "value", (snapshot) ->
 				r.updateLocalVar variable, r.snapshotWithKey(snapshot, model), true
