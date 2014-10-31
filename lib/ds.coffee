@@ -42,7 +42,6 @@ RDR = class extends RDR
 				@removeDeferred()
 				@Debug "Listeners", "Read From Cache: #{path}"
 			else
-								
 				@DS.child(path).on "child_changed", (snapshot) ->
 					r.updateLocalVar "#{variable}/#{snapshot.name()}", snapshot.val()
 				
