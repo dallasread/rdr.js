@@ -8,35 +8,36 @@ RDR = class extends RDR
 	prepareVars: (parent_key = "", parent_value = {}, synchronous = false) ->
 		parent_key = @slasherize parent_key
 		
-		if @setLocalVarByPath @Vars, parent_key, {}
-			if @setLocalVarByPath @synchronousVars, parent_key, {}
+		if !synchronous && parent_key.replace(/\//g, "").length && typeof parent_value == "object"
+			parent_value._path = parent_key
+			parent_value._parent_key = parent_value._path.substr 0, parent_value._path.lastIndexOf("/")
 		
-				if !synchronous && parent_key.replace(/\//g, "").length && typeof parent_value == "object"
-					parent_value._path = parent_key
-					parent_value._parent_key = parent_value._path.substr 0, parent_value._path.lastIndexOf("/")
-	
-				for key,value of parent_value
-					var_key = ""
-					var_key += parent_key
-					var_key += "/" if var_key.length
-					var_key += key
+		if typeof parent_value == "object" && !Object.keys(parent_value).length
+			@setLocalVarByPath @Vars, parent_key, {}
+			@setLocalVarByPath @synchronousVars, parent_key, {}
+		else
+			for key,value of parent_value
+				var_key = ""
+				var_key += parent_key
+				var_key += "/" if var_key.length
+				var_key += key
 
-					if typeof value == "object"
-						value._key = key
-						value._path = @slasherize var_key
-						value._parent_key = @slasherize parent_key
-						@prepareVars var_key, value, synchronous
-					else
-						@setLocalVarByPath @Vars, var_key, value
-						value = "<span data-rdr-bind-html='#{var_key}'>#{value}</span>"
-						@setLocalVarByPath @synchronousVars, var_key, value
-	
-				if synchronous
-					@removeDeferred()
-					@synchronousVars
+				if typeof value == "object"
+					value._key = key
+					value._path = @slasherize var_key
+					value._parent_key = @slasherize parent_key
+					@prepareVars var_key, value, synchronous
 				else
-					@updateView parent_key, parent_value
-					@Vars
+					@setLocalVarByPath @Vars, var_key, value
+					value = "<span data-rdr-bind-html='#{var_key}'>#{value}</span>"
+					@setLocalVarByPath @synchronousVars, var_key, value
+		
+		if synchronous
+			@removeDeferred()
+			@synchronousVars
+		else
+			@updateView parent_key, parent_value
+			@Vars
 	
 	updateLocalVar: (path, value, synchronous = false) ->
 		@prepareVars path, value, synchronous
@@ -81,5 +82,5 @@ RDR = class extends RDR
 			obj[elem] = {} unless obj[elem]
 			obj = obj[elem]
 			i++
-
+			
 		obj[pList[len - 1]] = value

@@ -54,8 +54,7 @@ RDR = class extends RDR
 		
 		Handlebars.registerHelper "render", (variable, template..., options) ->
 			output = ""
-			variable = r.dotterize variable
-			collection = r.getLocalVarByPath variable
+			collection = r.Vars[variable]
 			template = template[0] if typeof template == "object"
 			
 			if typeof template != "string"
@@ -65,13 +64,11 @@ RDR = class extends RDR
 				template = "/partials#{path}"
 			
 			if template of r.Templates
-				variable = r.slasherize variable
-				output += "<script data-rdr-collection-first=\"#{variable}\" data-template=\"#{template}\"></script>"
+				output += "<script class=\"rdr-collection-first-#{variable}\" data-template=\"#{template}\"></script>"
 				for k,v of collection
-					if k[0] != "_"
-						html = r.buildPartial template, v, "#{variable}/#{k}"
-						output += html
-				output += "<script data-rdr-collection-last=\"#{variable}\" data-template=\"#{template}\"></script>"
+					html = r.buildPartial template, v, "#{variable}/#{k}"
+					output += html
+				output += "<script class=\"rdr-collection-last-#{variable}\" data-template=\"#{template}\"></script>"
 			else
 				r.Warn "Partials", "Not Found: #{template}"
 

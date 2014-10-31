@@ -75,7 +75,7 @@ RDR = class extends RDR
 					for k,v of value
 						@updateVarOnPage "#{path}/#{k}", v
 				else
-					placer = $("script[data-rdr-collection-last='#{path.split("/")[1]}']")
+					placer = $("script.rdr-collection-last-#{path.split("/")[1]}")
 					template = placer.attr("data-template")
 					value._path = path
 					html = @buildPartial template, value, path
