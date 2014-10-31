@@ -47,11 +47,9 @@ RDR = class extends RDR
 
 				if !synchronous && parent_key.replace(/\//g, "").length && typeof parent_value == "object"
 					parent_value._path = parent_key
-					parent_value._parent_key = parent_key.substr 0, parent_key.lastIndexOf("/")
+					parent_value._parent_key = parent_value._path.substr 0, parent_value._path.lastIndexOf("/")
 
 				if @applyVars parent_key, parent_value, synchronous
-					console.log parent_value._model
-					
 					if synchronous
 						@removeDeferred()
 						@synchronousVars

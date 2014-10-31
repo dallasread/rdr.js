@@ -34,15 +34,11 @@ RDR = class extends RDR
 			path = Handlebars.compile path
 			path = path where
 			path = "#{path}/#{where.key}" if "key" of where
-			@varChart[variable] = path
+			@varChart[variable] = path 
+			@linkedVars[path] ||= []
+			@linkedVars[path].push variable
 			cached = @DSListeners.length && new RegExp(@DSListeners.join("|")).test path
 			deferred = @addDeferred()
-			
-			for k,v of m.fields
-				if v == "has_many"
-					where[model] = where.key
-					delete where.key
-					@find @singularize(k), where
 			
 			@DS.child(path).once "value", (snapshot) ->
 				r.updateLocalVar variable, r.snapshotWithKey(snapshot, model), true
@@ -57,6 +53,10 @@ RDR = class extends RDR
 			else
 				@DS.child(path).on "child_changed", (snapshot) ->
 					r.updateLocalVar "#{variable}/#{snapshot.name()}", r.snapshotWithKey(snapshot, model)
+
+					if "#{path}/#{snapshot.name()}" of r.linkedVars
+						for p in r.linkedVars["#{path}/#{snapshot.name()}"]
+							r.updateLocalVar p, r.snapshotWithKey(snapshot, model)
 				
 				@DS.child(path).on "child_added", (snapshot) ->
 					r.updateLocalVar "#{variable}/#{snapshot.name()}", r.snapshotWithKey(snapshot, model)
