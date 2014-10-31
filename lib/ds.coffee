@@ -24,18 +24,19 @@ RDR = class extends RDR
 	find: (model, where, variable = false) ->
 		r = @
 		m = @Models[model]
+		supplied_variable = variable != false
 		variable = @pluralize model if !variable && !("key" of where)
 		variable = model if !variable && "key" of where
 
 		if typeof m != "undefined"
 			path = m.dataPath
-			console.log ">>> #{path}"
 			path = model if typeof path == "undefined"
 			path = Handlebars.compile path
 			path = path where
-			console.log "||| #{path}"
 			path = "#{path}/#{where.key}" if "key" of where
-			@varChart[variable] = path
+			@varChart[variable] = path 
+			@linkedVars[path] ||= []
+			@linkedVars[path].push variable
 			cached = @DSListeners.length && new RegExp(@DSListeners.join("|")).test path
 			deferred = @addDeferred()
 			
@@ -52,6 +53,10 @@ RDR = class extends RDR
 			else
 				@DS.child(path).on "child_changed", (snapshot) ->
 					r.updateLocalVar "#{variable}/#{snapshot.name()}", r.snapshotWithKey(snapshot, model)
+
+					if "#{path}/#{snapshot.name()}" of r.linkedVars
+						for p in r.linkedVars["#{path}/#{snapshot.name()}"]
+							r.updateLocalVar p, r.snapshotWithKey(snapshot, model)
 				
 				@DS.child(path).on "child_added", (snapshot) ->
 					r.updateLocalVar "#{variable}/#{snapshot.name()}", r.snapshotWithKey(snapshot, model)
