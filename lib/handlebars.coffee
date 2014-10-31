@@ -33,6 +33,7 @@ RDR = class extends RDR
 						value = template options.data.root
 					else
 						value = r.escapeQuotes r.getLocalVarByPath slashed_key
+						value = "" if typeof value == "undefined" || value == "null"
 
 					attrs += "#{attr}=\"#{value}\""
 		

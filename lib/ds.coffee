@@ -17,7 +17,9 @@ RDR = class extends RDR
 		@DS = new Firebase @DSURL
 		@DS.onAuth (authData) ->
 			if authData
-				r.Vars.currentUserKey = authData.uid
+				r.Vars.me = {}
+				r.Vars.me.key = authData.uid
+				r.Vars.me.email = authData.password.email if "password" of authData
 			else
 				delete r.Vars.currentUserKey
 	
