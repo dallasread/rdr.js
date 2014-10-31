@@ -13,10 +13,12 @@ RDR = class extends RDR
 			var_key += key
 
 			if typeof value == "object"
-				value._key = key
-				value._path = @slasherize var_key
-				value._parent_key = @slasherize parent_key
 				model = @singularize @dotterize parent_key
+				
+				if Object.keys(value).length
+					value._key = key
+					value._path = @slasherize var_key
+					value._parent_key = @slasherize parent_key
 				
 				# HAS MANY FAIL
 				# if model of @Models && "fields" of @Models[model]

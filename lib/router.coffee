@@ -15,9 +15,9 @@ RDR = class extends RDR
 		routes = segments.slice(0).reverse()
 		new_path = "/#{segments.join("/")}"
 		@markActiveRoutes routes
-		@showLoading routes
+		@showLoading routes if path.indexOf("loading") == -1
 
-		if @hashPath == path && new_path == @currentPath
+		if 1 == 2 #@hashPath == path && new_path == @currentPath
 			@Log "Router", "Already Active: #{path}"
 		else
 			@hashPath = path
@@ -26,7 +26,7 @@ RDR = class extends RDR
 			Q.allSettled( r.initControllers segments, "before" ).then ->
 				r.generateViews segments.slice(0).reverse()
 				r.initControllers segments, "after"
-				r.isLoading = false
+				r.hideLoading()
 	
 	findRoute: (path, pristine = true, selected_path = [], routes = {}) ->
 		@PathIsDynamic = false

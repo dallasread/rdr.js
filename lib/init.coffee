@@ -1,5 +1,4 @@
 class @RDR
-	Glob: {}
 	Vars: {}
 	Controllers: {}
 	Models: {}
@@ -9,3 +8,4 @@ class @RDR
 	Initializers: []
 	DS: null
 	PathIsDynamic: false
+	fn: {}

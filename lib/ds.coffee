@@ -12,14 +12,21 @@ RDR = class extends RDR
 		@deferCount += 1
 	
 	DSConnect: ->
+		r = @
 		@DSURL = "https://#{@Config.firebase}.firebaseio.com/"
 		@DS = new Firebase @DSURL
+		@DS.onAuth (authData) ->
+			if authData
+				r.Vars.currentUserKey = authData.uid
+			else
+				delete r.Vars.currentUserKey
 	
 	snapshotWithKey: (snapshot, model) ->
 		data = snapshot.val()
 		data ||= {}
-		data._key = snapshot.name()
-		data._model = model
+		unless $.isEmptyObject data
+			data._key = snapshot.name()
+			data._model = model
 		data
 	
 	find: (model, where, variable = false) ->
@@ -95,7 +102,7 @@ RDR = class extends RDR
 		ds_path = @varPathToDSPath path
 		@deletebyPath ds_path if ds_path
 	
-	create: (key, value) ->
+	create: (key, value, callback = false) ->
 		path = @varPathToDSPath key
 		
 		if !path && key of @Models
@@ -114,12 +121,20 @@ RDR = class extends RDR
 
 		if path
 			r = @
-			@lastCreate = @DS.child(path).push value, (error) ->
-				r.DSCallback "create", key, value, error
+			if "key" of value
+				path = "#{path}/#{value.key}"
+				delete value.key
+				@DS.child(path).set value, (error) ->
+					r.DSCallback "create", key, value, error
+					callback() if typeof callback == "function"
+			else
+				r.lastInsert = @DS.child(path).push value, (error) ->
+					r.DSCallback "create", key, value, error
+					callback() if typeof callback == "function"
 		else
 			@Warn "Vars", "Bad Path: #{key}"
 		
-	update: (key, value) ->
+	update: (key, value, callback = false) ->
 		path = @varPathToDSPath key
 		path = key unless path
 
@@ -127,12 +142,14 @@ RDR = class extends RDR
 			r = @
 			@DS.child(path).set value, (error) ->
 				r.DSCallback "update", key, value, error
+				callback() if typeof callback == "function"
 		else
 			@Warn "Vars", "Bad Path: #{key}"
 	
 	DSCallback: (action, path, value, error) ->
 		if error
 			r = @
+			console.log "#{callback}"
 			
 			@DS.child(path).once "value", (snapshot) ->
 				r.updateView path, value

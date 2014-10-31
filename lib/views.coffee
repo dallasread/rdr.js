@@ -94,6 +94,10 @@ RDR = class extends RDR
 			else
 				$(this).attr attr, v
 	
+	hideLoading: ->
+		$(".rdr-template[data-rdr-template='/loading']").remove()
+		@isLoading = false
+	
 	showLoading: (segments, placer = "", html = "") ->
 		segments = segments.slice(1).reverse()
 		
