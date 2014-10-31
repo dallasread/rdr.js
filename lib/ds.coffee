@@ -15,33 +15,24 @@ RDR = class extends RDR
 		@DSURL = "https://#{@Config.firebase}.firebaseio.com/"
 		@DS = new Firebase @DSURL
 	
-	snapshotWithKey: (snapshot, model) ->
-		data = snapshot.val()
-		data._key = snapshot.name()
-		data._model = model
-		data
-	
 	find: (model, where, variable = false) ->
 		r = @
 		m = @Models[model]
-		supplied_variable = variable != false
-		variable = @pluralize model if !variable && !("key" of where)
-		variable = model if !variable && "key" of where
+		variable = @pluralize model if !variable && !("id" of where)
+		variable = model if !variable && "id" of where
 
 		if typeof m != "undefined"
 			path = m.dataPath
 			path = model if typeof path == "undefined"
 			path = Handlebars.compile path
 			path = path where
-			path = "#{path}/#{where.key}" if "key" of where
-			@varChart[variable] = path 
-			@linkedVars[path] ||= []
-			@linkedVars[path].push variable
+			path = "#{path}/#{where.id}" if "id" of where
+			@varChart[variable] = path
 			cached = @DSListeners.length && new RegExp(@DSListeners.join("|")).test path
 			deferred = @addDeferred()
 			
 			@DS.child(path).once "value", (snapshot) ->
-				r.updateLocalVar variable, r.snapshotWithKey(snapshot, model), true
+				r.updateLocalVar variable, snapshot.val(), true
 			
 			if cached
 				#unless variable of @Vars
@@ -52,14 +43,10 @@ RDR = class extends RDR
 				@Debug "Listeners", "Read From Cache: #{path}"
 			else
 				@DS.child(path).on "child_changed", (snapshot) ->
-					r.updateLocalVar "#{variable}/#{snapshot.name()}", r.snapshotWithKey(snapshot, model)
-
-					if "#{path}/#{snapshot.name()}" of r.linkedVars
-						for p in r.linkedVars["#{path}/#{snapshot.name()}"]
-							r.updateLocalVar p, r.snapshotWithKey(snapshot, model)
+					r.updateLocalVar "#{variable}/#{snapshot.name()}", snapshot.val()
 				
 				@DS.child(path).on "child_added", (snapshot) ->
-					r.updateLocalVar "#{variable}/#{snapshot.name()}", r.snapshotWithKey(snapshot, model)
+					r.updateLocalVar "#{variable}/#{snapshot.name()}", snapshot.val()
         
 				@DS.child(path).on "child_removed", (snapshot) ->
 					r.deleteLocalVar "#{variable}/#{snapshot.name()}"
@@ -101,21 +88,7 @@ RDR = class extends RDR
 		@deletebyPath ds_path if ds_path
 	
 	create: (key, value) ->
-		if key of @Models
-			m = @Models[@singularize key]
-			path = m.dataPath
-			path = model if typeof path == "undefined"
-			path_args = {}
-			
-			for k,v of value
-				if k[0] == "_"
-					delete value[k]
-					path_args[k.slice(1)] = v
-					
-			path = Handlebars.compile path
-			path = @slasherize path path_args
-		else
-			path = @varPathToDSPath key
+		path = @varPathToDSPath key
 
 		if path
 			r = @
