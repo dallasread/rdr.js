@@ -65,12 +65,12 @@ RDR = class extends RDR
 	
 	updateView: (path, value = false) ->
 		path = @slasherize path
-		is_model = typeof value == "object"
+		model = typeof value == "object"
 		
 		if !value
 			$("[data-rdr-bind-model='#{path}']").remove()
 		else
-			if is_model
+			if model
 				if $("[data-rdr-bind-model='#{path}']").length
 					for k,v of value
 						@updateVarOnPage "#{path}/#{k}", v
