@@ -65,21 +65,22 @@ RDR = class extends RDR
 	
 	updateView: (path, value = false) ->
 		path = @slasherize path
-		model = typeof value == "object"
+		is_model = typeof value == "object"
 		
 		if !value
 			$("[data-rdr-bind-model='#{path}']").remove()
 		else
-			if model
+			if is_model
 				if $("[data-rdr-bind-model='#{path}']").length
 					for k,v of value
 						@updateVarOnPage "#{path}/#{k}", v
 				else
-					placer = $("script[data-rdr-collection-last='#{path.split("/")[1]}']")
-					template = placer.attr("data-template")
-					value._path = path
-					html = @buildPartial template, value, path
-					$(html).insertBefore placer
+					if "_parent_key" of value
+						placer = $("script[data-rdr-collection-last='#{value._parent_key}']")
+						template = placer.attr("data-template")
+						value._path = path
+						html = @buildPartial template, value, path
+						$(html).insertBefore placer
 			else
 				@updateVarOnPage path, value
 	

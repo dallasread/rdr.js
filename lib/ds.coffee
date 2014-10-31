@@ -17,6 +17,7 @@ RDR = class extends RDR
 	
 	snapshotWithKey: (snapshot, model) ->
 		data = snapshot.val()
+		data ||= {}
 		data._key = snapshot.name()
 		data._model = model
 		data
@@ -24,16 +25,15 @@ RDR = class extends RDR
 	find: (model, where, variable = false) ->
 		r = @
 		m = @Models[model]
+		supplied_variable = !!variable
 		variable = @pluralize model if !variable && !("key" of where)
 		variable = model if !variable && "key" of where
 
 		if typeof m != "undefined"
 			path = m.dataPath
-			console.log ">>> #{path}"
 			path = model if typeof path == "undefined"
 			path = Handlebars.compile path
 			path = path where
-			console.log "||| #{path}"
 			path = "#{path}/#{where.key}" if "key" of where
 			@varChart[variable] = path
 			cached = @DSListeners.length && new RegExp(@DSListeners.join("|")).test path
@@ -96,21 +96,21 @@ RDR = class extends RDR
 		@deletebyPath ds_path if ds_path
 	
 	create: (key, value) ->
-		# if key of @Models
-		# 	m = @Models[@singularize key]
-		# 	path = m.dataPath
-		# 	path = model if typeof path == "undefined"
-		# 	path_args = {}
-		# 	
-		# 	for k,v of value
-		# 		if k[0] == "_"
-		# 			delete value[k]
-		# 			path_args[k.slice(1)] = v
-		# 			
-		# 	path = Handlebars.compile path
-		# 	path = @slasherize path path_args
-		# else
 		path = @varPathToDSPath key
+		
+		if !path && key of @Models
+			m = @Models[@singularize key]
+			path = m.dataPath
+			path = model if typeof path == "undefined"
+			path_args = {}
+			
+			for k,v of value
+				if k[0] == "_"
+					delete value[k]
+					path_args[k.slice(1)] = v
+					
+			path = Handlebars.compile path
+			path = @slasherize path path_args
 
 		if path
 			r = @
