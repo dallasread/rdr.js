@@ -1,5 +1,6 @@
 RDR = class extends RDR
 	varChart: {}
+	linkedVars: {}
 	synchronousVars: {}
 	
 	fetchSynchronousVars: ->
@@ -36,19 +37,21 @@ RDR = class extends RDR
 				@addDeferred() if synchronous
 				@setLocalVarByPath @synchronousVars, var_key, value
 		
-		@DSDeferred.promise if synchronous
+		if synchronous then @DSDeferred.promise else true
 	
 	prepareVars: (parent_key = "", parent_value = {}, synchronous = false) ->
 		parent_key = @slasherize parent_key
 		
 		if @setLocalVarByPath @Vars, parent_key, {}
 			if @setLocalVarByPath @synchronousVars, parent_key, {}
-		
+
 				if !synchronous && parent_key.replace(/\//g, "").length && typeof parent_value == "object"
 					parent_value._path = parent_key
-					parent_value._parent_key = parent_value._path.substr 0, parent_value._path.lastIndexOf("/")
-				
+					parent_value._parent_key = parent_key.substr 0, parent_key.lastIndexOf("/")
+
 				if @applyVars parent_key, parent_value, synchronous
+					console.log parent_value._model
+					
 					if synchronous
 						@removeDeferred()
 						@synchronousVars

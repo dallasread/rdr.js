@@ -67,7 +67,7 @@ RDR = class extends RDR
 			
 			if typeof template != "undefined" && template of r.Templates
 				variable = r.slasherize variable
-				output += "<script data-rdr-collection-first=\"#{variable}\" data-template=\"#{template}\"></script>"
+				output += "<script data-rdr-collection-first=\"#{variable}\" data-template=\"#{template}\"></script>#{variable}"
 				for k,v of collection
 					if k[0] != "_"
 						html = r.buildPartial template, v, "#{variable}/#{k}"
