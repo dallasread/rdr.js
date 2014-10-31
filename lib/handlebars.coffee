@@ -56,15 +56,16 @@ RDR = class extends RDR
 			output = ""
 			variable = r.dotterize variable
 			collection = r.getLocalVarByPath variable
+			collection ||= {}
 			template = template[0] if typeof template == "object"
 			
 			if typeof template != "string"
 				first = collection[Object.keys(collection)[0]]
-				path = r.singularize if typeof first != "undefined" then first._parent_key else variable
-				path = r.slasherize path
-				template = "/partials#{path}"
+				path = if typeof first == "object" && "_parent_key" of first then first._parent_key else variable
+				template = r.slasherize r.singularize path.substring path.lastIndexOf("/")
+				template = "/partials#{template}"
 			
-			if template of r.Templates
+			if typeof template != "undefined" && template of r.Templates
 				variable = r.slasherize variable
 				output += "<script data-rdr-collection-first=\"#{variable}\" data-template=\"#{template}\"></script>"
 				for k,v of collection
