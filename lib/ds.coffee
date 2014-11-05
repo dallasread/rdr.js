@@ -18,8 +18,9 @@ RDR = class extends RDR
 		@DS.onAuth (authData) ->
 			if authData
 				r.Vars.me = {}
-				r.Vars.me.key = authData.uid
+				r.Vars.me._key = authData.uid
 				r.Vars.me.email = authData.password.email if "password" of authData
+				r.Config.onAuth authData if typeof r.Config.onAuth == "function"
 			else
 				delete r.Vars.currentUserKey
 	
@@ -39,6 +40,7 @@ RDR = class extends RDR
 		variable = model if !variable && "key" of where
 
 		if typeof m != "undefined"
+			deferred = @addDeferred()
 			path = m.dataPath
 			path = model if typeof path == "undefined"
 			path = Handlebars.compile path
@@ -46,7 +48,6 @@ RDR = class extends RDR
 			path = "#{path}/#{where.key}" if "key" of where
 			@varChart[variable] = path
 			cached = @DSListeners.length && new RegExp(@DSListeners.join("|")).test path
-			deferred = @addDeferred()
 			
 			@DS.child(path).once "value", (snapshot) ->
 				r.updateLocalVar variable, r.snapshotWithKey(snapshot, model), true

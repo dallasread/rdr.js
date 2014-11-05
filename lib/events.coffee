@@ -28,6 +28,10 @@ RDR = class extends RDR
 			r.update $(this).attr("data-rdr-bind-key"), $(this).val()
 			false
 		
+		$(@Config.container).on "blur", "[data-rdr-bind-event='change']", ->
+			r.update $(this).attr("data-rdr-bind-key"), $(this).val()
+			false
+		
 		$(@Config.container).on "click", "[data-rdr-bind-event='click']", ->
 			data = {}
 			path = $(this).attr("data-rdr-bind-key")

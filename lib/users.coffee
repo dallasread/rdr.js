@@ -2,11 +2,16 @@ RDR = class extends RDR
 	createUserAndSignIn: (user, callback = false) ->
 		r = @
 		
-		@DS.createUser user, (error) ->
-			if typeof callback == "function"
-				r.signInUser user, callback
-			else
-				r.signInUser user
+		if "password" of user
+			@DS.createUser user, (error) ->
+				if typeof callback == "function"
+					r.signInUser user, callback
+				else
+					r.signInUser user
+		else
+			@DS.authAnonymously (error, authData) ->
+				if typeof callback == "function"
+					callback error, authData
 	
 	signInUser: (user, callback = false) ->
 		r = @

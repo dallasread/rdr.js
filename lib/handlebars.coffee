@@ -15,6 +15,18 @@ RDR = class extends RDR
 	handlebarsHelpers: ->
 		r = @
 		
+		Handlebars.registerHelper "is", (value, test, options) ->
+			if value && value == test
+				options.fn this
+			else
+				options.inverse this
+		
+		Handlebars.registerHelper "firstcharisnt", (value, test, options) ->
+			if !value || value[0] != test
+				options.fn this
+			else
+				options.inverse this
+
 		Handlebars.registerHelper "bind-attr", (options) ->
 			attrs = ""
 			[in_loop, path] = r.extractPath options
