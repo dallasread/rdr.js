@@ -11,7 +11,7 @@ RDR = class extends RDR
 		@DSDeferred = Q.defer() if @deferCount == 0
 		@deferCount += 1
 	
-	DSConnect: ->
+	DSConnect: (callback) ->
 		r = @
 		@DSURL = "https://#{@Config.firebase}.firebaseio.com/"
 		@DS = new Firebase @DSURL
@@ -23,6 +23,9 @@ RDR = class extends RDR
 				r.Config.onAuth authData if typeof r.Config.onAuth == "function"
 			else
 				delete r.Vars.currentUserKey
+			callback() if typeof callback == "function"
+			r.removeDeferred()
+		@addDeferred()
 	
 	snapshotWithKey: (snapshot, model) ->
 		data = snapshot.val()
@@ -107,6 +110,9 @@ RDR = class extends RDR
 	
 	create: (key, value, callback = false) ->
 		path = @varPathToDSPath key
+		priority = value.priority
+		priority ||= new Date().getTime()
+		delete value.priority
 		
 		if !path && key of @Models
 			m = @Models[@singularize key]
@@ -127,13 +133,27 @@ RDR = class extends RDR
 			if "key" of value
 				path = "#{path}/#{value.key}"
 				delete value.key
-				@DS.child(path).set value, (error) ->
+				
+				@DS.child(path).setWithPriority value, priority, (error) ->
 					r.DSCallback "create", key, value, error
 					callback() if typeof callback == "function"
 			else
 				r.lastInsert = @DS.child(path).push value, (error) ->
+					r.DS.child(path).child(r.lastInsert.name()).setPriority 100
 					r.DSCallback "create", key, value, error
 					callback() if typeof callback == "function"
+		else
+			@Warn "Vars", "Bad Path: #{key}"
+	
+	setPriority: (key, priority, callback = false) ->
+		path = @varPathToDSPath key
+		path = key unless path
+
+		if path
+			r = @
+			@DS.child(path).setPriority priority, (error) ->
+				r.DSCallback "prioritize", key, priority, error
+				callback() if typeof callback == "function"
 		else
 			@Warn "Vars", "Bad Path: #{key}"
 		
@@ -152,9 +172,10 @@ RDR = class extends RDR
 	DSCallback: (action, path, value, error) ->
 		if error
 			r = @
-			console.log "#{callback}"
 			
 			@DS.child(path).once "value", (snapshot) ->
 				r.updateView path, value
-			
-			@Warn "DS", "#{@capitalize} Failed: #{value}"
+
+			@Warn "DS", "#{@capitalize action} Failed: #{path}"
+		else
+			@Log "DS", "#{@capitalize action} Success: #{path}"

@@ -33,6 +33,7 @@ RDR = class extends RDR
 
 			for attr,key of options.hash
 				if attr == "event"
+					event = key
 					attrs += "data-rdr-bind-#{attr}=\"#{key}\" "
 				else
 					slashed_key = r.slasherize key
@@ -46,6 +47,7 @@ RDR = class extends RDR
 					else
 						value = r.escapeQuotes r.getLocalVarByPath slashed_key
 						value = "" if typeof value == "undefined" || value == "null"
+						attrs += "checked=\"checked\" " if event && event == "toggle" && attr == "value" && $.inArray("#{value}", ["true", "t", "1"]) != -1
 
 					attrs += "#{attr}=\"#{value}\""
 		

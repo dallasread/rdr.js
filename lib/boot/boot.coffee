@@ -7,34 +7,35 @@ RDR = class extends RDR
 		@Log "App", "Initializing"
 		r = @
 		
-		@handlebarsHelpers()
-		
 		for init,index in @Initializers
 			@Warn "Booter", "Initializer Executing: ##{index + 1}"
 			init() if typeof init == "function"
 		
 		@Log "Booter", "Booting"
 		
-		@createApplicationView()
-		@DSConnect()
-		@Events()
-		FastClick.attach document.body
+		@DSConnect ->
+			FastClick.attach document.body
+			r.handlebarsHelpers()
+			r.createApplicationView()
+			r.Events()
 		
-		if /\#|hash/.test(@Config.history)
-			@Log "Booter", "RDR History is Now: #"
-			@Config.history = "#"
+			if /\#|hash/.test(r.Config.history)
+				r.Log "Booter", "RDR History is Now: #"
+				r.Config.history = "#"
 			
-			$(window).bind "hashchange", ->
-				r.fetchPath window.location.hash.replace(/\#/g, "")
+				$(window).bind "hashchange", ->
+					r.fetchPath window.location.hash.replace(/\#/g, "")
 			
-			if window.location.hash == ""
-				window.location.hash = "#/"
+				if window.location.hash == ""
+					window.location.hash = "##{r.currentPath}"
+				else
+					$(window).trigger "hashchange"
+			
 			else
-				$(window).trigger "hashchange"
+				$(r.Config.container).on "click", "a[href^='#']", ->
+					r.fetchPath $(this).attr("href").replace(/\#/g, "")
+					false
 			
-		else
-			$(@Config.container).on "click", "a[href^='#']", ->
-				r.fetchPath $(this).attr("href").replace(/\#/g, "")
-				false
-			
-			@fetchPath @currentPath
+				r.fetchPath r.currentPath
+
+			r.DSDeferred.promise
